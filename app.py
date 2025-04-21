@@ -163,14 +163,69 @@ def schedule_reminders():
     employees = c.fetchall()
     conn.close()
     
-    current_date = datetime.now().strftime('%Y-%m-%d')
+    now = datetime.now()
+    next_monday = now.date() + timedelta(days=(7 - now.date().weekday()) % 7)
+    current_date = now.strftime('%Y-%m-%d')
+    
     for employee_id, name, email in employees:
+        # Check if employee has already submitted a report this week
+        conn = sqlite3.connect('employees.db')
+        c = conn.cursor()
+        week_start = (now.date() - timedelta(days=now.date().weekday())).strftime('%Y-%m-%d')
+        c.execute("SELECT id FROM reports WHERE employee_id = ? AND submission_date >= ?", 
+                 (employee_id, week_start))
+        has_submitted = c.fetchone() is not None
+        conn.close()
+        
+        # HTML email content
+        html_content = f"""
+        <html>
+        <head>
+            <style>
+                body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                .header {{ background-color: #2c3e50; color: white; padding: 20px; text-align: center; }}
+                .content {{ padding: 20px; background-color: #f9f9f9; }}
+                .footer {{ text-align: center; margin-top: 20px; color: #666; font-size: 12px; }}
+                .button {{ display: inline-block; background-color: #3498db; color: white; padding: 10px 20px; 
+                          text-decoration: none; border-radius: 5px; margin-top: 20px; }}
+                .warning {{ color: #e74c3c; }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h2>SBS Corp Weekly Status Report</h2>
+                </div>
+                <div class="content">
+                    <p>Hi {name},</p>
+                    
+                    <p>This is a {'reminder' if not has_submitted else 'confirmation'} regarding your weekly status report.</p>
+                    
+                    {'<p><strong class="warning">You have not yet submitted your report for this week.</strong> Please submit it as soon as possible.</p>' 
+                    if not has_submitted else '<p>Thank you for submitting your report this week!</p>'}
+                    
+                    <p>Next report due date: <strong>{next_monday.strftime('%A, %B %d, %Y')} by 9:00 AM</strong></p>
+                    
+                    <p>Please log in to the Weekly Status Report Portal to {'upload' if not has_submitted else 'view'} your report.</p>
+                    
+                    <a href="https://weekly-status-report.replit.app" class="button">Access Portal</a>
+                </div>
+                <div class="footer">
+                    <p>This is an automated message from the SBS Corp Weekly Status Report system.</p>
+                    <p>&copy; {now.year} SBS Corp. All rights reserved.</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        
         send_email(
             email,
-            f"Weekly Report Reminder - {current_date}",
-            f"Hi {name},\n\nThis is a friendly reminder to submit your weekly status report for the week ending {current_date}.\n\nPlease log in to the Weekly Status Report Portal to upload your report.\n\nBest regards,\nAdmin Team"
+            f"Weekly Report {'Reminder' if not has_submitted else 'Confirmation'} - {current_date}",
+            html_content
         )
-        logging.info(f"Reminder sent to {email}")
+        logging.info(f"{'Reminder' if not has_submitted else 'Confirmation'} email sent to {email}")
 
 schedule.every().monday.at("09:00").do(schedule_reminders)
 
@@ -295,6 +350,41 @@ def login():
     
     return redirect(url_for('index'))
 
+# Function to get calendar data with submissions marked
+def get_calendar_data(employee_id, year, month):
+    # Get all submissions for the employee
+    conn = sqlite3.connect('employees.db')
+    c = conn.cursor()
+    c.execute("SELECT submission_date FROM reports WHERE employee_id = ?", (employee_id,))
+    submissions = [datetime.strptime(row[0], '%Y-%m-%d %H:%M:%S').date() for row in c.fetchall()]
+    conn.close()
+    
+    # Calculate the calendar grid
+    cal = calendar.monthcalendar(year, month)
+    
+    # Get the first Monday of the month (or before)
+    first_day = date(year, month, 1)
+    first_monday = first_day - timedelta(days=first_day.weekday())
+    
+    # Calculate which Mondays should have submissions
+    mondays = []
+    current_monday = first_monday
+    while current_monday.month == month or (current_monday.month < month and current_monday.year == year):
+        if current_monday.month == month:
+            mondays.append(current_monday)
+        current_monday += timedelta(days=7)
+    
+    # Mark submissions as completed or missing
+    calendar_data = {
+        'weeks': cal,
+        'month_name': calendar.month_name[month],
+        'year': year,
+        'submissions': submissions,
+        'mondays': mondays
+    }
+    
+    return calendar_data
+
 @app.route('/dashboard', methods=['GET', 'POST'])
 def dashboard():
     if 'employee_id' not in session:
@@ -336,8 +426,15 @@ def dashboard():
     today = now.date()
     next_monday = today + timedelta(days=(7 - today.weekday()))
     
-    return render_template('dashboard.html', name=session['employee_name'], 
-                         submissions=recent_submissions, now=now, next_monday=next_monday)
+    # Get calendar data for current month
+    calendar_data = get_calendar_data(session['employee_id'], now.year, now.month)
+    
+    return render_template('dashboard.html', 
+                         name=session['employee_name'], 
+                         submissions=recent_submissions, 
+                         now=now, 
+                         next_monday=next_monday,
+                         calendar=calendar_data)
 
 @app.route('/logout')
 def logout():

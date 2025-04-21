@@ -57,6 +57,72 @@
                 </form>
             </div>
         </div>
+        
+        <!-- Monthly Calendar Card -->
+        <div class="card bg-dark border-0 shadow-sm mb-4">
+            <div class="card-header bg-dark border-bottom border-secondary d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">
+                    <i class="fas fa-calendar-alt text-primary me-2"></i> Monthly Calendar
+                </h4>
+                <div class="text-muted">{{ calendar.month_name }} {{ calendar.year }}</div>
+            </div>
+            <div class="card-body">
+                <table class="table table-dark calendar-table">
+                    <thead>
+                        <tr>
+                            <th>Mon</th>
+                            <th>Tue</th>
+                            <th>Wed</th>
+                            <th>Thu</th>
+                            <th>Fri</th>
+                            <th>Sat</th>
+                            <th>Sun</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for week in calendar.weeks %}
+                        <tr>
+                            {% for day in week %}
+                            <td class="text-center">
+                                {% if day != 0 %}
+                                    {% set current_date = date(calendar.year, loop.parent.loop.index0, day) %}
+                                    {% set is_monday = loop.index0 == 0 %}
+                                    {% set has_submission = current_date in calendar.submissions %}
+                                    {% set missing_report = is_monday and current_date in calendar.mondays and not has_submission and current_date < now.date() %}
+                                    
+                                    <div class="calendar-day {% if is_monday %}monday{% endif %} {% if missing_report %}text-danger{% elif has_submission %}text-success{% endif %}">
+                                        {{ day }}
+                                        {% if has_submission %}
+                                            <i class="fas fa-check-circle text-success" data-bs-toggle="tooltip" title="Report submitted"></i>
+                                        {% elif missing_report %}
+                                            <i class="fas fa-times-circle text-danger" data-bs-toggle="tooltip" title="Missing report"></i>
+                                        {% elif is_monday %}
+                                            <i class="fas fa-exclamation-circle text-warning" data-bs-toggle="tooltip" title="Report due"></i>
+                                        {% endif %}
+                                    </div>
+                                {% endif %}
+                            </td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                
+                <div class="mt-3">
+                    <div class="d-flex align-items-center mb-2">
+                        <div class="calendar-legend-item text-success me-3">
+                            <i class="fas fa-check-circle me-1"></i> Submitted
+                        </div>
+                        <div class="calendar-legend-item text-danger me-3">
+                            <i class="fas fa-times-circle me-1"></i> Missing
+                        </div>
+                        <div class="calendar-legend-item text-warning">
+                            <i class="fas fa-exclamation-circle me-1"></i> Due
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
     
     <div class="col-lg-5">

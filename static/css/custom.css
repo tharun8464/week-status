@@ -102,6 +102,43 @@
     to { transform: rotate(360deg); }
 }
 
+/* Calendar styles */
+.calendar-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.calendar-table th, 
+.calendar-table td {
+    text-align: center;
+    padding: 0.5rem;
+    border: 1px solid var(--bs-gray-700);
+}
+
+.calendar-day {
+    position: relative;
+    padding: 0.25rem;
+    min-height: 2rem;
+    cursor: default;
+}
+
+.calendar-day.monday {
+    font-weight: bold;
+}
+
+.calendar-day i {
+    font-size: 0.75rem;
+    position: absolute;
+    top: 0;
+    right: 0;
+}
+
+.calendar-legend-item {
+    display: flex;
+    align-items: center;
+    font-size: 0.875rem;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .auth-section {
@@ -110,5 +147,10 @@
     
     .upload-zone {
         padding: 1rem;
+    }
+    
+    .calendar-table th,
+    .calendar-table td {
+        padding: 0.25rem;
     }
 }
