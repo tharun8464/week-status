@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Weekly Status Report Portal{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12 mb-4">
+        <div class="card bg-dark border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-user-circle fa-3x text-primary me-3"></i>
+                    <div>
+                        <h2 class="mb-0">Welcome, {{ name }}</h2>
+                        <p class="text-muted mb-0">
+                            <i class="far fa-calendar-alt me-1"></i> {{ now.strftime('%A, %B %d, %Y') if now else 'Today' }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-7">
+        <div class="card bg-dark border-0 shadow-sm mb-4">
+            <div class="card-header bg-dark border-bottom border-secondary">
+                <h4 class="mb-0">
+                    <i class="fas fa-cloud-upload-alt text-primary me-2"></i> Upload Weekly Report
+                </h4>
+            </div>
+            <div class="card-body">
+                <form id="report-form" method="POST" action="{{ url_for('dashboard') }}" enctype="multipart/form-data">
+                    <div class="mb-4">
+                        <div id="upload-zone" class="upload-zone">
+                            <div class="mb-3">
+                                <i class="fas fa-file-upload fa-3x text-muted mb-3"></i>
+                                <h5>Drag & Drop Your Report Here</h5>
+                                <p class="text-muted mb-0">Or click to browse files</p>
+                                <p id="file-name" class="mt-2 mb-0 fw-bold">No file selected</p>
+                            </div>
+                            <input type="file" id="report" name="report" class="d-none" accept=".pdf,.doc,.docx,.txt,.rtf">
+                        </div>
+                        <div id="upload-error" class="alert alert-danger mt-3" style="display: none;"></div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="form-text">
+                            <i class="fas fa-info-circle me-1"></i> Supported formats: PDF, DOC, DOCX, TXT, RTF
+                        </div>
+                        <button id="upload-btn" type="submit" class="btn btn-primary">
+                            <i class="fas fa-upload me-1"></i> Upload Report
+                        </button>
+                    </div>
+                    
+                    <div id="spinner" class="spinner"></div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-5">
+        <div class="card bg-dark border-0 shadow-sm mb-4">
+            <div class="card-header bg-dark border-bottom border-secondary">
+                <h4 class="mb-0">
+                    <i class="fas fa-calendar-check text-primary me-2"></i> Weekly Report Schedule
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h5 class="mb-1">Next Due Date:</h5>
+                        {% set next_monday = now.today() + ((0 - now.today().weekday() + 7) % 7) if now else 'Monday' %}
+                        <p class="text-info mb-0 fw-bold">
+                            <i class="far fa-calendar me-1"></i> {{ next_monday.strftime('%A, %B %d, %Y') if next_monday is not string else next_monday }}
+                        </p>
+                    </div>
+                    <div class="text-center bg-dark px-3 py-2 rounded-3 border border-secondary">
+                        <h5 class="mb-1">Time</h5>
+                        <p class="text-info mb-0 fw-bold">9:00 AM</p>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info d-flex align-items-center mb-0" role="alert">
+                    <i class="fas fa-bell me-2"></i>
+                    <div>
+                        Email reminders will be sent every Monday morning. Make sure to submit your report on time.
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card bg-dark border-0 shadow-sm">
+            <div class="card-header bg-dark border-bottom border-secondary d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">
+                    <i class="fas fa-history text-primary me-2"></i> Recent Submissions
+                </h4>
+                <span class="badge bg-primary">{{ submissions|length }}</span>
+            </div>
+            <div class="card-body p-0">
+                {% if submissions %}
+                <div class="table-responsive">
+                    <table class="table table-dark submissions-table mb-0">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>File</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for submission in submissions %}
+                            <tr>
+                                <td>
+                                    <i class="far fa-calendar-alt me-1 text-muted"></i>
+                                    {{ submission.date|replace(' ', ' at ') }}
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <i class="far fa-file-pdf me-2 text-danger"></i>
+                                        <span class="text-truncate" style="max-width: 200px;">{{ submission.filename }}</span>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="far fa-folder-open fa-3x text-muted mb-3"></i>
+                    <h5>No submissions yet</h5>
+                    <p class="text-muted">Your uploaded reports will appear here</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card bg-dark border-0 shadow-sm">
+            <div class="card-header bg-dark border-bottom border-secondary">
+                <h4 class="mb-0">
+                    <i class="fas fa-question-circle text-primary me-2"></i> Help & Guidelines
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5><i class="fas fa-file-alt me-2"></i> Report Format</h5>
+                        <ul class="ps-3">
+                            <li>Include your name and the reporting period</li>
+                            <li>Summarize tasks completed during the week</li>
+                            <li>List any challenges encountered</li>
+                            <li>Outline your plan for the upcoming week</li>
+                            <li>PDF format is preferred, but other formats are accepted</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h5><i class="fas fa-info-circle me-2"></i> Submission Tips</h5>
+                        <ul class="ps-3">
+                            <li>Submit reports by Monday at 9:00 AM</li>
+                            <li>Name your file clearly with the date included</li>
+                            <li>Keep your report concise but comprehensive</li>
+                            <li>Include relevant metrics and achievements</li>
+                            <li>Contact support if you encounter any issues</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
