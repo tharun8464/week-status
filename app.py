@@ -243,25 +243,49 @@ def login():
     email = request.form['email']
     password = request.form['password']
     
+    logging.debug(f"Login attempt for email: {email}")
+    
     if not all([email, password]):
+        logging.debug("Missing email or password")
         flash("Email and password are required", "danger")
         return redirect(url_for('index'))
     
-    conn = sqlite3.connect('employees.db')
-    c = conn.cursor()
-    c.execute("SELECT id, name, folder_id FROM employees WHERE email = ? AND password = ?",
-              (email, password))
-    employee = c.fetchone()
-    conn.close()
+    try:
+        conn = sqlite3.connect('employees.db')
+        c = conn.cursor()
+        
+        # First check if user exists at all
+        c.execute("SELECT * FROM employees WHERE email = ?", (email,))
+        user_exists = c.fetchone()
+        if not user_exists:
+            logging.debug(f"No user found with email: {email}")
+            flash("Email not registered", "danger")
+            conn.close()
+            return redirect(url_for('index'))
+            
+        # Then check credentials
+        c.execute("SELECT id, name, folder_id, password FROM employees WHERE email = ?", (email,))
+        user_data = c.fetchone()
+        conn.close()
+        
+        if user_data:
+            stored_id, stored_name, stored_folder_id, stored_password = user_data
+            logging.debug(f"Found user: {stored_name}, checking password")
+            
+            if stored_password == password:
+                session['employee_id'] = stored_id
+                session['employee_name'] = stored_name
+                session['folder_id'] = stored_folder_id
+                flash(f"Welcome back, {stored_name}!", "success")
+                return redirect(url_for('dashboard'))
+            else:
+                logging.debug("Password mismatch")
+                flash("Invalid password", "danger")
+                return redirect(url_for('index'))
+    except Exception as e:
+        logging.error(f"Login error: {str(e)}")
+        flash("An error occurred during login. Please try again.", "danger")
     
-    if employee:
-        session['employee_id'] = employee[0]
-        session['employee_name'] = employee[1]
-        session['folder_id'] = employee[2]
-        flash(f"Welcome back, {employee[1]}!", "success")
-        return redirect(url_for('dashboard'))
-    
-    flash("Invalid credentials", "danger")
     return redirect(url_for('index'))
 
 @app.route('/dashboard', methods=['GET', 'POST'])
