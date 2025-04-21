@@ -4,12 +4,13 @@ import sqlite3
 import os
 import schedule
 import time
-import smtplib
 import logging
-from email.mime.text import MIMEText
+import calendar
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 from threading import Thread
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 import uuid
 
 # Configure logging
@@ -130,19 +131,25 @@ def record_submission(employee_id, filename):
     conn.close()
     return report_id
 
-# Send Email Reminder
+# Send Email Reminder using SendGrid
 def send_email(to_email, subject, body):
-    sender = os.getenv('EMAIL_SENDER', 'your-email@example.com')
-    password = os.getenv('EMAIL_PASSWORD', 'your-email-password')
-    msg = MIMEText(body)
-    msg['Subject'] = subject
-    msg['From'] = sender
-    msg['To'] = to_email
+    sendgrid_key = os.environ.get('SENDGRID_API_KEY')
+    sender = os.getenv('EMAIL_SENDER', 'noreply@sbscorp.com')
+    
+    if not sendgrid_key:
+        logging.error("SendGrid API key not found")
+        return False
+    
+    message = Mail(
+        from_email=sender,
+        to_emails=to_email,
+        subject=subject,
+        html_content=body)
     
     try:
-        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
-            server.login(sender, password)
-            server.sendmail(sender, to_email, msg.as_string())
+        sg = SendGridAPIClient(sendgrid_key)
+        response = sg.send(message)
+        logging.info(f"Email sent with status code {response.status_code}")
         return True
     except Exception as e:
         logging.error(f"Email sending failed: {str(e)}")

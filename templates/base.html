@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Weekly Status Report Portal{% endblock %}</title>
+    <title>{% block title %}SBS Corp Weekly Status Report{% endblock %}</title>
     
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css">
@@ -22,7 +22,7 @@
             <div class="container">
                 <a class="navbar-brand d-flex align-items-center" href="{{ url_for('index') }}">
                     <i class="fas fa-file-alt me-2 text-primary fa-lg"></i>
-                    <span>Weekly Status Reports</span>
+                    <span>SBS Corp Weekly Status Report</span>
                 </a>
                 
                 {% if session.get('employee_id') %}
@@ -86,7 +86,7 @@
     <footer class="py-3 mt-4 bg-dark">
         <div class="container text-center">
             <p class="mb-0 text-muted">
-                <small>&copy; {{ now.year if now else '2023' }} Weekly Status Report Portal. All rights reserved.</small>
+                <small>&copy; {{ now.year if now else '2023' }} SBS Corp Weekly Status Report. All rights reserved.</small>
             </p>
         </div>
     </footer>
