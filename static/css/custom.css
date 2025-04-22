@@ -4,7 +4,7 @@
 .auth-section {
     position: relative;
     background-color: rgba(33, 37, 41, 0.8);
-    border-radius: 0.5rem;
+    border-radius: 0;
     box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
 }
 
@@ -116,7 +116,7 @@
 /* Upload zone styling */
 .upload-zone {
     border: 2px dashed var(--bs-secondary);
-    border-radius: 0.5rem;
+    border-radius: 0;
     padding: 2rem;
     text-align: center;
     cursor: pointer;
@@ -157,7 +157,7 @@
 }
 
 .submissions-table tbody tr {
-    border-radius: 0.5rem;
+    border-radius: 0;
     margin-bottom: 0.5rem;
     transition: background-color 0.2s ease;
 }
