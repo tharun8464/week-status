@@ -14,6 +14,7 @@ from functools import wraps
 from models import db, User, Report, ActivityLog
 from routes import create_onedrive_folder
 import email_service
+import slack_service
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -212,15 +213,25 @@ def add_employee():
             
             # Send welcome email if requested
             if form.send_welcome_email.data:
-                success = email_service.send_welcome_email(
+                # Try to send email notification
+                email_success = email_service.send_welcome_email(
                     to_email=form.email.data,
                     employee_name=form.name.data,
                     password=form.password.data
                 )
-                if success:
+                
+                # Try to send Slack notification as well
+                slack_success = slack_service.send_new_employee_notification(
+                    employee_name=form.name.data,
+                    employee_email=form.email.data
+                )
+                
+                if email_success:
                     flash(f"Employee created successfully and welcome email sent to {form.email.data}", "success")
+                elif slack_success:
+                    flash(f"Employee created successfully. Email couldn't be sent, but Slack notification was delivered.", "success")
                 else:
-                    flash(f"Employee created successfully, but welcome email could not be sent. Check email settings.", "warning")
+                    flash(f"Employee created successfully, but notifications could not be sent. Check email and Slack settings.", "warning")
             else:
                 flash("Employee created successfully", "success")
             
@@ -304,25 +315,12 @@ def reset_employee_password(id):
             employee.password = form.password.data
             db.session.commit()
             
-            # Optionally send email notification
-            email_subject = "SBS Corp - Your Password Has Been Reset"
-            email_body = f"""
-            <html>
-            <body>
-                <h2>Password Reset Notification</h2>
-                <p>Hello {employee.name},</p>
-                <p>Your password for the SBS Corp Weekly Status Report System has been reset by an administrator.</p>
-                <p><strong>Your new login details:</strong></p>
-                <ul>
-                    <li><strong>Email:</strong> {employee.email}</li>
-                    <li><strong>Password:</strong> {form.password.data}</li>
-                </ul>
-                <p>Please login at <a href="{request.host_url}">{request.host_url}</a></p>
-                <p>Thank you,<br>SBS Corp Admin</p>
-            </body>
-            </html>
-            """
-            send_email(employee.email, email_subject, email_body)
+            # Send password reset notification using our email service
+            success = email_service.send_welcome_email(
+                to_email=employee.email,
+                employee_name=employee.name,
+                password=form.password.data
+            )
             
             log_admin_activity(
                 f"Reset password for employee: {employee.name}",
@@ -456,27 +454,37 @@ def review_report(id):
             # Notify employee of review if needed
             if report.status in ['approved', 'rejected']:
                 employee = User.query.get(report.employee_id)
-                status_text = "approved" if report.status == 'approved' else "rejected"
                 
-                email_subject = f"Weekly Report {status_text.capitalize()}"
-                email_body = f"""
-                <html>
-                <body>
-                    <h2>Weekly Report {status_text.capitalize()}</h2>
-                    <p>Hello {employee.name},</p>
-                    <p>Your weekly report "{report.filename}" has been <strong>{status_text}</strong>.</p>
-                    
-                    <p><strong>Review details:</strong></p>
-                    <p>Status: {status_text.capitalize()}</p>
-                    
-                    <p><strong>Feedback:</strong></p>
-                    <p>{report.feedback if report.feedback else "No feedback provided."}</p>
-                    
-                    <p>Thank you,<br>SBS Corp Admin</p>
-                </body>
-                </html>
-                """
-                send_email(employee.email, email_subject, email_body)
+                # Get report submission date formatted for the email
+                report_date = report.submission_date.strftime("%A, %B %d, %Y")
+                
+                # Send appropriate email notification based on status
+                email_success = False
+                if report.status == 'approved':
+                    email_success = email_service.send_report_approved_email(
+                        to_email=employee.email,
+                        employee_name=employee.name,
+                        report_date=report_date,
+                        feedback=report.feedback
+                    )
+                else:  # rejected
+                    email_success = email_service.send_report_rejected_email(
+                        to_email=employee.email,
+                        employee_name=employee.name,
+                        report_date=report_date,
+                        feedback=report.feedback
+                    )
+                
+                # Also try to send a Slack notification
+                slack_success = slack_service.send_report_status_notification(
+                    employee_name=employee.name,
+                    report_filename=report.filename,
+                    status=report.status,
+                    feedback=report.feedback
+                )
+                
+                if not email_success and not slack_success:
+                    logging.warning(f"Could not send report review notification to {employee.email} via email or Slack")
             
             log_admin_activity(
                 f"Reviewed report: {report.filename}",
@@ -538,37 +546,40 @@ def send_reminders():
         try:
             # Check if this employee has submitted (for customized message)
             has_submitted = employee.id in submitted_ids
-            status_message = ""
             
-            if has_submitted:
-                status_message = "<p><strong>Note:</strong> Our records show you have already submitted your report for this week. This is just a courtesy reminder.</p>"
+            # Calculate due date for the email (next Monday)
+            today = datetime.now()
+            days_until_monday = (7 - today.weekday()) % 7
+            if days_until_monday == 0:
+                days_until_monday = 7
+            next_monday = today + timedelta(days=days_until_monday)
+            due_date_str = next_monday.strftime("%A, %B %d, %Y at 9:00 AM")
             
-            email_body = f"""
-            <html>
-            <body style="font-family: Arial, Helvetica, sans-serif; line-height: 1.6; color: #333;">
-                <div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 5px; background-color: #f9f9f9;">
-                    <h2 style="color: #d9534f; border-bottom: 1px solid #eee; padding-bottom: 10px;">Weekly Report Reminder</h2>
-                    
-                    <p>Hello {employee.name},</p>
-                    
-                    <p>This is a friendly reminder that your weekly status report is due.</p>
-                    
-                    {status_message}
-                    
-                    {formatted_additional_message}
-                    
-                    <p>Please login at <a href="{request.host_url}" style="color: #007bff; text-decoration: none; font-weight: bold;">{request.host_url}</a> to submit your report.</p>
-                    
-                    <p style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #eee;">
-                        Thank you,<br>
-                        <strong>SBS Corp Admin Team</strong>
-                    </p>
-                </div>
-            </body>
-            </html>
-            """
-            send_email(employee.email, subject, email_body)
-            count += 1
+            # Try email first
+            email_success = email_service.send_reminder_email(
+                to_email=employee.email,
+                employee_name=employee.name,
+                due_date_str=due_date_str
+            )
+            
+            # Also try Slack as an additional notification channel
+            slack_success = slack_service.send_reminder_notification(
+                employee_name=employee.name,
+                due_date_str=due_date_str
+            )
+            
+            if email_success or slack_success:
+                count += 1
+                
+                # Log which channels were used for reminders
+                if email_success and slack_success:
+                    logging.info(f"Sent reminder to {employee.name} via both email and Slack")
+                elif email_success:
+                    logging.info(f"Sent reminder to {employee.name} via email only")
+                else:
+                    logging.info(f"Sent reminder to {employee.name} via Slack only")
+            else:
+                logging.warning(f"Could not send reminder to {employee.name} via either email or Slack")
         except Exception as e:
             logging.error(f"Error sending reminder to {employee.email}: {str(e)}")
     
