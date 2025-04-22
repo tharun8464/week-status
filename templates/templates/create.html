@@ -113,34 +113,15 @@
                         </div>
                         
                         <div class="col-md-6">
-                            <div class="form-group mb-3">
-                                <div class="form-check form-switch">
-                                    {{ form.is_shared(class="form-check-input") }}
-                                    <label for="{{ form.is_shared.id }}" class="form-check-label">Share with team members</label>
-                                </div>
-                                <small class="form-text text-muted">
-                                    <i class="fas fa-share-alt me-1"></i> When enabled, you can share this template with specific team members
-                                </small>
-                            </div>
-                            
-                            <div id="sharingOptions" class="mt-3" style="display: none;">
-                                <label class="form-label">Select team members to share with:</label>
-                                <div class="card bg-dark border-secondary mb-3">
-                                    <div class="card-body p-2 user-selection-list">
-                                        {% for user_id, user_name in form.shared_with.choices %}
-                                        <div class="form-check user-checkbox">
-                                            <input type="checkbox" name="{{ form.shared_with.name }}" id="user_{{ user_id }}" value="{{ user_id }}" class="form-check-input">
-                                            <label for="user_{{ user_id }}" class="form-check-label">{{ user_name }}</label>
-                                        </div>
-                                        {% endfor %}
-                                    </div>
-                                </div>
-                                <button type="button" id="selectAllBtn" class="btn btn-sm btn-outline-primary me-2">
-                                    <i class="fas fa-check-square me-1"></i> Select All
-                                </button>
-                                <button type="button" id="deselectAllBtn" class="btn btn-sm btn-outline-secondary">
-                                    <i class="fas fa-square me-1"></i> Deselect All
-                                </button>
+                            <div class="alert alert-info" role="alert">
+                                <h5><i class="fas fa-info-circle me-2"></i>Template Tips</h5>
+                                <p class="mb-2">Tips for creating effective templates:</p>
+                                <ul class="mb-0">
+                                    <li>Keep the format consistent and readable</li>
+                                    <li>Include sections for key status information</li>
+                                    <li>Use placeholders for personalized information</li>
+                                    <li>Break complex topics into manageable sections</li>
+                                </ul>
                             </div>
                         </div>
                     </div>
