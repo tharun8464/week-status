@@ -1,0 +1,231 @@
+{% extends 'base.html' %}
+
+{% block title %}Use Template - Weekly Status Report Portal{% endblock %}
+
+{% block additional_head %}
+<style>
+    .template-container {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    
+    .template-content {
+        border: 1px solid #444;
+        border-radius: 4px;
+        padding: 20px;
+        background-color: #2d2d2d;
+    }
+    
+    .template-content.text {
+        font-family: monospace;
+        white-space: pre-wrap;
+    }
+    
+    .template-content.html p, 
+    .template-content.html h1, 
+    .template-content.html h2, 
+    .template-content.html h3, 
+    .template-content.html h4, 
+    .template-content.html h5, 
+    .template-content.html h6 {
+        margin-bottom: 1rem;
+    }
+    
+    .template-content.html ul, 
+    .template-content.html ol {
+        margin-bottom: 1rem;
+        padding-left: 1.5rem;
+    }
+    
+    .format-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card bg-dark border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <h2 class="mb-0">
+                            <i class="fas fa-file-export text-success me-2"></i> Using Template
+                        </h2>
+                        <p class="text-muted mb-0">{{ template.name }}</p>
+                    </div>
+                    <a href="{{ url_for('templates.list_templates') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1"></i> Back to Templates
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card bg-dark border-0 shadow-sm mb-4">
+            <div class="card-body">
+                <div class="position-relative mb-4">
+                    <h4 class="mb-3">Template Preview</h4>
+                    
+                    <div class="format-badge">
+                        <span class="badge bg-secondary">
+                            {% if template.format == 'html' %}
+                            <i class="fas fa-code me-1"></i> HTML Format
+                            {% elif template.format == 'text' %}
+                            <i class="fas fa-file-alt me-1"></i> Text Format
+                            {% elif template.format == 'markdown' %}
+                            <i class="fas fa-markdown me-1"></i> Markdown Format
+                            {% endif %}
+                        </span>
+                    </div>
+                    
+                    <div class="template-content {{ template.format }}">
+                        {% if template.format == 'text' %}
+                            <pre>{{ template.content }}</pre>
+                        {% elif template.format == 'html' %}
+                            {{ template.content|safe }}
+                        {% else %}
+                            {{ template.content|replace('\n', '<br>')|safe }}
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="alert alert-info d-flex">
+                    <i class="fas fa-info-circle fa-2x me-3 align-self-center"></i>
+                    <div>
+                        <h5 class="alert-heading">How to use this template</h5>
+                        <p class="mb-0">
+                            Choose one of the options below to use this template for your weekly status report.
+                            You can download it, copy to clipboard, or use it directly in an HTML editor if applicable.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="row mt-4">
+                    <div class="col-md-4 mb-3">
+                        <div class="card bg-dark border-secondary h-100">
+                            <div class="card-body text-center">
+                                <i class="fas fa-download fa-3x text-info mb-3"></i>
+                                <h5>Download</h5>
+                                <p class="text-muted">Save the template to your computer and edit it in your preferred application.</p>
+                                <div class="mt-3">
+                                    {% if template.format == 'html' %}
+                                    <a href="#" class="btn btn-info" id="downloadBtn" data-filename="weekly_report_template.html">
+                                        <i class="fas fa-download me-1"></i> Download HTML
+                                    </a>
+                                    {% elif template.format == 'text' %}
+                                    <a href="#" class="btn btn-info" id="downloadBtn" data-filename="weekly_report_template.txt">
+                                        <i class="fas fa-download me-1"></i> Download Text
+                                    </a>
+                                    {% elif template.format == 'markdown' %}
+                                    <a href="#" class="btn btn-info" id="downloadBtn" data-filename="weekly_report_template.md">
+                                        <i class="fas fa-download me-1"></i> Download Markdown
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4 mb-3">
+                        <div class="card bg-dark border-secondary h-100">
+                            <div class="card-body text-center">
+                                <i class="fas fa-clipboard fa-3x text-primary mb-3"></i>
+                                <h5>Copy to Clipboard</h5>
+                                <p class="text-muted">Copy the template and paste it directly in your report or email.</p>
+                                <div class="mt-3">
+                                    <button class="btn btn-primary" id="copyBtn">
+                                        <i class="fas fa-copy me-1"></i> Copy to Clipboard
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4 mb-3">
+                        <div class="card bg-dark border-secondary h-100">
+                            <div class="card-body text-center">
+                                <i class="fas fa-file-upload fa-3x text-success mb-3"></i>
+                                <h5>Use Directly</h5>
+                                <p class="text-muted">Create a new report based on this template and upload it right away.</p>
+                                <div class="mt-3">
+                                    <a href="{{ url_for('main.dashboard') }}" class="btn btn-success">
+                                        <i class="fas fa-upload me-1"></i> Go to Upload
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-4 alert alert-warning d-flex">
+                    <i class="fas fa-exclamation-triangle fa-2x me-3 align-self-center"></i>
+                    <div>
+                        <h5 class="alert-heading">Remember to personalize!</h5>
+                        <p class="mb-0">
+                            Be sure to replace all placeholder text (like [Employee Name], [Department], etc.) with your actual information before submitting your report.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Copy Success Modal -->
+<div class="modal fade" id="copySuccessModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content bg-dark text-light border-secondary">
+            <div class="modal-body text-center py-4">
+                <i class="fas fa-check-circle text-success fa-3x mb-3"></i>
+                <h5>Copied to Clipboard!</h5>
+                <p class="mb-0">The template has been copied to your clipboard.</p>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block additional_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Copy to clipboard functionality
+    const copyBtn = document.getElementById('copyBtn');
+    const templateContent = `{{ template.content|replace('\n', '\\n')|replace("'", "\\'") }}`;
+    
+    copyBtn.addEventListener('click', function() {
+        navigator.clipboard.writeText(templateContent).then(() => {
+            const modal = new bootstrap.Modal(document.getElementById('copySuccessModal'));
+            modal.show();
+        }).catch(err => {
+            console.error('Could not copy text: ', err);
+            alert('Failed to copy to clipboard. Please try again.');
+        });
+    });
+    
+    // Download functionality
+    const downloadBtn = document.getElementById('downloadBtn');
+    const filename = downloadBtn.getAttribute('data-filename');
+    
+    downloadBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        const blob = new Blob([templateContent], { type: 'text/plain' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    });
+});
+</script>
+{% endblock %}

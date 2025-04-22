@@ -1,0 +1,253 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ template.name }} - Text Editor{% endblock %}
+
+{% block additional_head %}
+<style>
+    body, html {
+        height: 100%;
+    }
+    
+    .editor-container {
+        display: flex;
+        flex-direction: column;
+        height: calc(100vh - 120px);
+    }
+    
+    .toolbar {
+        background-color: #2d2d2d;
+        border: 1px solid #444;
+        border-bottom: none;
+        border-radius: 4px 4px 0 0;
+        padding: 8px;
+    }
+    
+    .editor-content {
+        flex-grow: 1;
+        border: 1px solid #444;
+        border-radius: 0 0 4px 4px;
+        background-color: #1e1e1e;
+        color: #e6e6e6;
+        font-family: monospace;
+        padding: 15px;
+        white-space: pre-wrap;
+        overflow-y: auto;
+        min-height: 450px;
+    }
+    
+    .btn-insert {
+        padding: 4px 8px;
+        font-size: 14px;
+    }
+    
+    .format-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+    }
+    
+    .editor-options {
+        position: absolute;
+        bottom: 15px;
+        right: 15px;
+        z-index: 100;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col-md-12">
+        <div class="card bg-dark border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <h2 class="mb-0">
+                            <i class="fas fa-file-alt text-info me-2"></i> Text Template Editor
+                        </h2>
+                        <p class="text-muted mb-0">{{ template.name }}</p>
+                    </div>
+                    <div>
+                        <a href="{{ url_for('templates.use_template', template_id=template.id) }}" class="btn btn-outline-secondary me-2">
+                            <i class="fas fa-arrow-left me-1"></i> Back
+                        </a>
+                        <a href="{{ url_for('templates.list_templates') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-th-list me-1"></i> All Templates
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-md-12">
+        <div class="alert alert-info d-flex">
+            <i class="fas fa-lightbulb fa-2x me-3 align-self-center"></i>
+            <div>
+                <h5 class="alert-heading">Text Editor Instructions</h5>
+                <p class="mb-0">
+                    Edit the template directly in the editor below. Use the buttons to insert placeholders.
+                    When finished, download the text or copy the content for your weekly report.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row position-relative">
+    <div class="col-md-12">
+        <div class="card bg-dark border-0 shadow-sm">
+            <div class="card-body p-0">
+                <div class="editor-container">
+                    <div class="toolbar">
+                        <div class="btn-toolbar" role="toolbar">
+                            <div class="btn-group me-2">
+                                <button type="button" class="btn btn-sm btn-outline-secondary btn-insert" data-placeholder="[Employee Name]">
+                                    <i class="fas fa-user me-1"></i> Insert Name
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary btn-insert" data-placeholder="[Department]">
+                                    <i class="fas fa-building me-1"></i> Insert Department
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary btn-insert" data-placeholder="[Week Ending Date]">
+                                    <i class="fas fa-calendar-alt me-1"></i> Insert Date
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary btn-insert" data-placeholder="[Manager Name]">
+                                    <i class="fas fa-user-tie me-1"></i> Insert Manager
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <textarea class="editor-content" id="editorContent">{{ template.content }}</textarea>
+                </div>
+                
+                <div class="editor-options">
+                    <div class="btn-group shadow-sm">
+                        <button class="btn btn-info" id="copyBtn">
+                            <i class="fas fa-copy me-1"></i> Copy
+                        </button>
+                        <button class="btn btn-primary" id="downloadBtn">
+                            <i class="fas fa-download me-1"></i> Download
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Copy Success Modal -->
+<div class="modal fade" id="copySuccessModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content bg-dark text-light border-secondary">
+            <div class="modal-body text-center py-4">
+                <i class="fas fa-check-circle text-success fa-3x mb-3"></i>
+                <h5>Copied to Clipboard!</h5>
+                <p class="mb-0">The template has been copied to your clipboard.</p>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block additional_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Placeholder insertion buttons
+    const insertButtons = document.querySelectorAll('.btn-insert');
+    const editorContent = document.getElementById('editorContent');
+    
+    insertButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const placeholder = this.getAttribute('data-placeholder');
+            insertAtCursor(editorContent, placeholder);
+        });
+    });
+    
+    // Copy to clipboard functionality
+    const copyBtn = document.getElementById('copyBtn');
+    
+    copyBtn.addEventListener('click', function() {
+        // Select the editor content
+        editorContent.select();
+        
+        // Copy to clipboard
+        document.execCommand('copy');
+        
+        // Show success modal
+        const modal = new bootstrap.Modal(document.getElementById('copySuccessModal'));
+        modal.show();
+    });
+    
+    // Download functionality
+    const downloadBtn = document.getElementById('downloadBtn');
+    
+    downloadBtn.addEventListener('click', function() {
+        // Get the text content
+        const content = editorContent.value;
+        
+        // Create blob and download link
+        const blob = new Blob([content], { type: 'text/plain' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'weekly_report.txt';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    });
+    
+    // Auto save to local storage
+    let autoSaveInterval = null;
+    
+    function saveToLocalStorage() {
+        localStorage.setItem('text_template_content', editorContent.value);
+        localStorage.setItem('text_template_timestamp', new Date().toString());
+    }
+    
+    // Start auto-save
+    autoSaveInterval = setInterval(saveToLocalStorage, 10000); // Every 10 seconds
+    
+    // Save on content changes
+    editorContent.addEventListener('input', function() {
+        clearTimeout(window.saveTimeout);
+        window.saveTimeout = setTimeout(saveToLocalStorage, 1000);
+    });
+    
+    // Check for saved content
+    const savedContent = localStorage.getItem('text_template_content');
+    const savedTimestamp = localStorage.getItem('text_template_timestamp');
+    
+    if (savedContent && savedTimestamp) {
+        const confirmRestore = confirm(
+            `You have an unsaved template from ${new Date(savedTimestamp).toLocaleString()}.\n\nWould you like to restore it?`
+        );
+        
+        if (confirmRestore) {
+            editorContent.value = savedContent;
+        } else {
+            // Clear saved content if user doesn't want to restore
+            localStorage.removeItem('text_template_content');
+            localStorage.removeItem('text_template_timestamp');
+        }
+    }
+    
+    // Helper function to insert text at cursor position
+    function insertAtCursor(textarea, text) {
+        const startPos = textarea.selectionStart;
+        const endPos = textarea.selectionEnd;
+        const scrollTop = textarea.scrollTop;
+        
+        textarea.value = textarea.value.substring(0, startPos) + text + textarea.value.substring(endPos, textarea.value.length);
+        textarea.focus();
+        textarea.selectionStart = startPos + text.length;
+        textarea.selectionEnd = startPos + text.length;
+        textarea.scrollTop = scrollTop;
+    }
+});
+</script>
+{% endblock %}

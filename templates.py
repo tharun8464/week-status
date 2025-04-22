@@ -141,7 +141,10 @@ def view_template(template_id):
         flash('You do not have access to this template', 'danger')
         return redirect(url_for('templates.list_templates'))
     
-    return render_template('templates/view.html', template=template)
+    # Get User query for displaying shared user names
+    user_query = User.query
+    
+    return render_template('templates/view.html', template=template, user_query=user_query)
 
 @templates_bp.route('/delete/<template_id>', methods=['POST'])
 @login_required

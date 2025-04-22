@@ -7,13 +7,20 @@
     <div class="col-md-12 mb-4">
         <div class="card bg-dark border-0 shadow-sm">
             <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <i class="fas fa-user-circle fa-3x text-primary me-3"></i>
+                <div class="d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-user-circle fa-3x text-primary me-3"></i>
+                        <div>
+                            <h2 class="mb-0">Welcome, <span class="text-primary">{{ name }}</span></h2>
+                            <p class="text-muted mb-0">
+                                <i class="far fa-calendar-alt me-1"></i> {{ now.strftime('%A, %B %d, %Y') if now else 'Today' }}
+                            </p>
+                        </div>
+                    </div>
                     <div>
-                        <h2 class="mb-0">Welcome, <span class="text-primary">{{ name }}</span></h2>
-                        <p class="text-muted mb-0">
-                            <i class="far fa-calendar-alt me-1"></i> {{ now.strftime('%A, %B %d, %Y') if now else 'Today' }}
-                        </p>
+                        <a href="{{ url_for('templates.list_templates') }}" class="btn btn-outline-primary">
+                            <i class="fas fa-file-alt me-2"></i> My Templates
+                        </a>
                     </div>
                 </div>
             </div>
@@ -24,10 +31,13 @@
 <div class="row">
     <div class="col-lg-7">
         <div class="card bg-dark border-0 shadow-sm mb-4">
-            <div class="card-header bg-dark border-bottom border-secondary">
+            <div class="card-header bg-dark border-bottom border-secondary d-flex justify-content-between align-items-center">
                 <h4 class="mb-0">
                     <i class="fas fa-cloud-upload-alt text-primary me-2"></i> Upload Weekly Report
                 </h4>
+                <a href="{{ url_for('templates.list_templates') }}" class="btn btn-sm btn-outline-info">
+                    <i class="fas fa-file-alt me-1"></i> Use Template
+                </a>
             </div>
             <div class="card-body">
                 <form id="report-form" method="POST" action="{{ url_for('main.dashboard') }}" enctype="multipart/form-data">
@@ -40,6 +50,11 @@
                                 <p id="file-name" class="mt-2 mb-0 fw-bold">No file selected</p>
                             </div>
                             <input type="file" id="report" name="report" class="d-none" accept=".pdf,.doc,.docx,.txt,.rtf">
+                        </div>
+                        <div class="text-center mt-2">
+                            <p class="text-muted small mb-0">
+                                <i class="fas fa-info-circle me-1"></i> Need a template? <a href="{{ url_for('templates.list_templates') }}" class="text-info">Click here</a> to use or create custom templates
+                            </p>
                         </div>
                         <div id="upload-error" class="alert alert-danger mt-3" style="display: none;"></div>
                         

@@ -1,0 +1,458 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ template.name }} - HTML Editor{% endblock %}
+
+{% block additional_head %}
+<style>
+    body, html {
+        height: 100%;
+    }
+    
+    .editor-container {
+        display: flex;
+        flex-direction: column;
+        height: calc(100vh - 120px);
+    }
+    
+    .toolbar {
+        background-color: #2d2d2d;
+        border: 1px solid #444;
+        border-bottom: none;
+        border-radius: 4px 4px 0 0;
+        padding: 8px;
+    }
+    
+    .editor-content {
+        flex-grow: 1;
+        border: 1px solid #444;
+        border-top: none;
+        border-radius: 0 0 4px 4px;
+        background-color: #1e1e1e;
+        color: #e6e6e6;
+        padding: 15px;
+        overflow-y: auto;
+    }
+    
+    [contenteditable] {
+        outline: none;
+    }
+    
+    [contenteditable]:focus {
+        background-color: rgba(38, 79, 120, 0.1);
+    }
+    
+    .btn-format {
+        padding: 5px 10px;
+        font-size: 14px;
+    }
+    
+    .btn-format-group {
+        margin-right: 15px;
+    }
+    
+    .editor-content h1, 
+    .editor-content h2, 
+    .editor-content h3, 
+    .editor-content h4, 
+    .editor-content h5, 
+    .editor-content h6 {
+        margin-bottom: 1rem;
+    }
+    
+    .editor-content p {
+        margin-bottom: 1rem;
+    }
+    
+    .editor-content ul, 
+    .editor-content ol {
+        margin-bottom: 1rem;
+        padding-left: 1.5rem;
+    }
+    
+    .format-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+    }
+    
+    .editor-options {
+        position: absolute;
+        bottom: 15px;
+        right: 15px;
+        z-index: 100;
+    }
+    
+    #downloadPdf {
+        position: relative;
+        overflow: hidden;
+    }
+    
+    #downloadPdf input[type="file"] {
+        position: absolute;
+        top: 0;
+        right: 0;
+        min-width: 100%;
+        min-height: 100%;
+        font-size: 100px;
+        text-align: right;
+        opacity: 0;
+        outline: none;
+        cursor: pointer;
+        display: block;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col-md-12">
+        <div class="card bg-dark border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <h2 class="mb-0">
+                            <i class="fas fa-code text-primary me-2"></i> HTML Template Editor
+                        </h2>
+                        <p class="text-muted mb-0">{{ template.name }}</p>
+                    </div>
+                    <div>
+                        <a href="{{ url_for('templates.use_template', template_id=template.id) }}" class="btn btn-outline-secondary me-2">
+                            <i class="fas fa-arrow-left me-1"></i> Back
+                        </a>
+                        <a href="{{ url_for('templates.list_templates') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-th-list me-1"></i> All Templates
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-md-12">
+        <div class="alert alert-info d-flex">
+            <i class="fas fa-lightbulb fa-2x me-3 align-self-center"></i>
+            <div>
+                <h5 class="alert-heading">HTML Editor Instructions</h5>
+                <p class="mb-0">
+                    Edit the template directly in the editor below. Use the toolbar to format text, add lists, and more.
+                    When finished, download as PDF or copy the content for your weekly report.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row position-relative">
+    <div class="col-md-12">
+        <div class="card bg-dark border-0 shadow-sm">
+            <div class="card-body p-0">
+                <div class="editor-container">
+                    <div class="toolbar">
+                        <div class="btn-toolbar" role="toolbar">
+                            <div class="btn-group btn-format-group me-2">
+                                <button type="button" class="btn btn-sm btn-outline-secondary btn-format" data-command="bold" title="Bold">
+                                    <i class="fas fa-bold"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary btn-format" data-command="italic" title="Italic">
+                                    <i class="fas fa-italic"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary btn-format" data-command="underline" title="Underline">
+                                    <i class="fas fa-underline"></i>
+                                </button>
+                            </div>
+                            
+                            <div class="btn-group btn-format-group me-2">
+                                <button type="button" class="btn btn-sm btn-outline-secondary btn-format" data-command="formatBlock" data-value="h1" title="Heading 1">
+                                    <i class="fas fa-heading"></i>1
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary btn-format" data-command="formatBlock" data-value="h2" title="Heading 2">
+                                    <i class="fas fa-heading"></i>2
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary btn-format" data-command="formatBlock" data-value="h3" title="Heading 3">
+                                    <i class="fas fa-heading"></i>3
+                                </button>
+                            </div>
+                            
+                            <div class="btn-group btn-format-group me-2">
+                                <button type="button" class="btn btn-sm btn-outline-secondary btn-format" data-command="insertUnorderedList" title="Bullet List">
+                                    <i class="fas fa-list-ul"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary btn-format" data-command="insertOrderedList" title="Numbered List">
+                                    <i class="fas fa-list-ol"></i>
+                                </button>
+                            </div>
+                            
+                            <div class="btn-group btn-format-group me-2">
+                                <button type="button" class="btn btn-sm btn-outline-secondary btn-format" data-command="justifyLeft" title="Align Left">
+                                    <i class="fas fa-align-left"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary btn-format" data-command="justifyCenter" title="Align Center">
+                                    <i class="fas fa-align-center"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary btn-format" data-command="justifyRight" title="Align Right">
+                                    <i class="fas fa-align-right"></i>
+                                </button>
+                            </div>
+                            
+                            <div class="btn-group btn-format-group">
+                                <button type="button" class="btn btn-sm btn-outline-secondary btn-format" data-command="insertHorizontalRule" title="Horizontal Line">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary btn-format" data-command="removeFormat" title="Clear Formatting">
+                                    <i class="fas fa-remove-format"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="editor-content" id="editorContent" contenteditable="true">
+                        {{ template.content|safe }}
+                    </div>
+                </div>
+                
+                <div class="editor-options">
+                    <div class="btn-group shadow-sm">
+                        <button class="btn btn-info" id="copyBtn">
+                            <i class="fas fa-copy me-1"></i> Copy
+                        </button>
+                        <button class="btn btn-primary" id="downloadBtn">
+                            <i class="fas fa-download me-1"></i> Download
+                        </button>
+                        <button class="btn btn-success" id="printBtn">
+                            <i class="fas fa-print me-1"></i> Print
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Copy Success Modal -->
+<div class="modal fade" id="copySuccessModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content bg-dark text-light border-secondary">
+            <div class="modal-body text-center py-4">
+                <i class="fas fa-check-circle text-success fa-3x mb-3"></i>
+                <h5>Copied to Clipboard!</h5>
+                <p class="mb-0">The template has been copied to your clipboard.</p>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block additional_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Format buttons functionality
+    const formatButtons = document.querySelectorAll('.btn-format');
+    const editorContent = document.getElementById('editorContent');
+    
+    formatButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const command = this.getAttribute('data-command');
+            const value = this.getAttribute('data-value') || null;
+            
+            // Focus the editor before executing commands
+            editorContent.focus();
+            
+            if (command === 'formatBlock') {
+                // Special handling for formatBlock in modern browsers
+                document.execCommand('formatBlock', false, value);
+            } else {
+                // Execute the standard command
+                document.execCommand(command, false, value);
+            }
+        });
+    });
+    
+    // Copy to clipboard functionality
+    const copyBtn = document.getElementById('copyBtn');
+    
+    copyBtn.addEventListener('click', function() {
+        // Select the editor content
+        const range = document.createRange();
+        range.selectNodeContents(editorContent);
+        
+        const selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(range);
+        
+        // Copy to clipboard
+        document.execCommand('copy');
+        
+        // Deselect the content
+        selection.removeAllRanges();
+        
+        // Show success modal
+        const modal = new bootstrap.Modal(document.getElementById('copySuccessModal'));
+        modal.show();
+    });
+    
+    // Download functionality
+    const downloadBtn = document.getElementById('downloadBtn');
+    
+    downloadBtn.addEventListener('click', function() {
+        // Get the HTML content
+        const content = editorContent.innerHTML;
+        
+        // Create full HTML document
+        const htmlContent = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="utf-8">
+                <title>Weekly Status Report</title>
+                <style>
+                    body {
+                        font-family: Arial, sans-serif;
+                        line-height: 1.6;
+                        margin: 20px;
+                        color: #333;
+                    }
+                    h1, h2, h3, h4, h5, h6 {
+                        color: #2a5885;
+                        margin-top: 1.5em;
+                        margin-bottom: 0.5em;
+                    }
+                    ul, ol {
+                        margin-bottom: 1.5em;
+                        padding-left: 2em;
+                    }
+                    p {
+                        margin-bottom: 1em;
+                    }
+                    hr {
+                        border: none;
+                        border-top: 1px solid #ddd;
+                        margin: 2em 0;
+                    }
+                    @media print {
+                        body {
+                            margin: 0.5cm;
+                        }
+                    }
+                </style>
+            </head>
+            <body>
+                ${content}
+            </body>
+            </html>
+        `;
+        
+        // Create blob and download link
+        const blob = new Blob([htmlContent], { type: 'text/html' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'weekly_report.html';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    });
+    
+    // Print functionality
+    const printBtn = document.getElementById('printBtn');
+    
+    printBtn.addEventListener('click', function() {
+        // Create a new window for printing
+        const printWindow = window.open('', '_blank');
+        
+        // Get the HTML content
+        const content = editorContent.innerHTML;
+        
+        // Create print-friendly HTML document
+        const printContent = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="utf-8">
+                <title>Weekly Status Report</title>
+                <style>
+                    body {
+                        font-family: Arial, sans-serif;
+                        line-height: 1.6;
+                        margin: 20px;
+                        color: #333;
+                    }
+                    h1, h2, h3, h4, h5, h6 {
+                        color: #2a5885;
+                        margin-top: 1.5em;
+                        margin-bottom: 0.5em;
+                    }
+                    ul, ol {
+                        margin-bottom: 1.5em;
+                        padding-left: 2em;
+                    }
+                    p {
+                        margin-bottom: 1em;
+                    }
+                    hr {
+                        border: none;
+                        border-top: 1px solid #ddd;
+                        margin: 2em 0;
+                    }
+                </style>
+            </head>
+            <body>
+                ${content}
+                <script>
+                    window.onload = function() {
+                        window.print();
+                        window.setTimeout(function() {
+                            window.close();
+                        }, 500);
+                    };
+                </script>
+            </body>
+            </html>
+        `;
+        
+        // Write content to the new window
+        printWindow.document.open();
+        printWindow.document.write(printContent);
+        printWindow.document.close();
+    });
+    
+    // Auto save to local storage
+    let autoSaveInterval = null;
+    
+    function saveToLocalStorage() {
+        localStorage.setItem('html_template_content', editorContent.innerHTML);
+        localStorage.setItem('html_template_timestamp', new Date().toString());
+    }
+    
+    // Start auto-save
+    autoSaveInterval = setInterval(saveToLocalStorage, 10000); // Every 10 seconds
+    
+    // Save on content changes
+    editorContent.addEventListener('input', function() {
+        clearTimeout(window.saveTimeout);
+        window.saveTimeout = setTimeout(saveToLocalStorage, 1000);
+    });
+    
+    // Check for saved content
+    const savedContent = localStorage.getItem('html_template_content');
+    const savedTimestamp = localStorage.getItem('html_template_timestamp');
+    
+    if (savedContent && savedTimestamp) {
+        const confirmRestore = confirm(
+            `You have an unsaved template from ${new Date(savedTimestamp).toLocaleString()}.\n\nWould you like to restore it?`
+        );
+        
+        if (confirmRestore) {
+            editorContent.innerHTML = savedContent;
+        } else {
+            // Clear saved content if user doesn't want to restore
+            localStorage.removeItem('html_template_content');
+            localStorage.removeItem('html_template_timestamp');
+        }
+    }
+});
+</script>
+{% endblock %}
