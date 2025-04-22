@@ -7,7 +7,7 @@ from datetime import datetime, timedelta, date
 import uuid
 from flask import Blueprint, render_template, redirect, url_for, request, flash, session
 from flask_login import login_user, logout_user, login_required, current_user
-from models import db, Employee, Report
+from models import db, User, Report
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 
@@ -188,7 +188,7 @@ def signup():
             return render_template('signup.html', now=datetime.now())
         
         # Check if email already exists
-        existing_user = Employee.query.filter_by(email=email).first()
+        existing_user = User.query.filter_by(email=email).first()
         
         if existing_user:
             flash("Email already registered", "danger")
@@ -197,12 +197,13 @@ def signup():
         employee_id = str(uuid.uuid4())
         try:
             folder_id = create_onedrive_folder(name)
-            new_employee = Employee(
+            new_employee = User(
                 id=employee_id,
                 name=name,
                 email=email,
                 password=password,
-                folder_id=folder_id
+                folder_id=folder_id,
+                role='employee'
             )
             db.session.add(new_employee)
             db.session.commit()
@@ -229,7 +230,7 @@ def login():
     
     try:
         # Find the user by email
-        employee = Employee.query.filter_by(email=email).first()
+        employee = User.query.filter_by(email=email).first()
         
         if not employee:
             logging.debug(f"No user found with email: {email}")
@@ -260,7 +261,7 @@ def dashboard():
         return redirect(url_for('main.index'))
     
     employee_id = session['employee_id']
-    employee = Employee.query.get(employee_id)
+    employee = User.query.get(employee_id)
     
     if not employee:
         session.clear()

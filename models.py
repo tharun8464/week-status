@@ -11,7 +11,7 @@ class User(UserMixin, db.Model):
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     name = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(100), nullable=False, unique=True)
-    password = db.Column(db.String(100), nullable=False)
+    password = db.Column(db.String(255), nullable=False)  # Increased length for modern password hashes
     role = db.Column(db.String(20), nullable=False, default='employee')  # 'admin' or 'employee'
     folder_id = db.Column(db.String(100), nullable=True)  # Only employees need folders
     active = db.Column(db.Boolean, default=True)

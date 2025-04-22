@@ -1,0 +1,260 @@
+/* Admin Dashboard Styles */
+
+/* Card animations */
+.card {
+    transition: all 0.3s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+/* Icon box */
+.icon-box {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.card:hover .icon-box {
+    transform: scale(1.1);
+}
+
+/* Avatar styling */
+.avatar-circle {
+    width: 40px;
+    height: 40px;
+    background-color: var(--bs-primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Button hover effects */
+.btn {
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn:after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: -100%;
+    background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0) 100%);
+    transition: left 0.5s ease;
+}
+
+.btn:hover:after {
+    left: 100%;
+}
+
+/* Form field animations */
+.form-control, .form-select {
+    transition: all 0.3s ease;
+}
+
+.form-control:focus, .form-select:focus {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Table row hover effect */
+.table-hover tbody tr {
+    transition: all 0.3s ease;
+}
+
+.table-hover tbody tr:hover {
+    transform: scale(1.01);
+    background-color: rgba(55, 65, 75, 0.7) !important;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+    z-index: 10;
+    position: relative;
+}
+
+/* Badge animations */
+.badge {
+    transition: all 0.3s ease;
+}
+
+tr:hover .badge, .card:hover .badge {
+    transform: scale(1.1);
+}
+
+/* Sidebar Navigation (when added) */
+.sidebar {
+    transition: all 0.3s ease;
+}
+
+.sidebar-link {
+    transition: all 0.3s ease;
+    border-left: 3px solid transparent;
+    padding-left: 15px;
+}
+
+.sidebar-link:hover {
+    border-left-color: var(--bs-primary);
+    background-color: rgba(0, 0, 0, 0.1);
+    padding-left: 20px;
+}
+
+.sidebar-link.active {
+    border-left-color: var(--bs-primary);
+    background-color: rgba(13, 110, 253, 0.1);
+}
+
+/* Quick Action Buttons */
+.quick-action {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    text-align: center;
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.quick-action i {
+    font-size: 2rem;
+    margin-bottom: 0.75rem;
+    transition: all 0.3s ease;
+}
+
+.quick-action:hover {
+    transform: translateY(-5px);
+}
+
+.quick-action:hover i {
+    transform: scale(1.2);
+}
+
+/* Dashboard stats counters */
+.counter-value {
+    font-weight: bold;
+    transition: all 0.5s ease;
+    display: inline-block;
+}
+
+.counter-value.animated {
+    animation: counterPulse 0.5s ease-out;
+}
+
+@keyframes counterPulse {
+    0% { transform: scale(0.8); color: var(--bs-primary); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+/* Form Animations */
+.animated {
+    animation-duration: 0.6s;
+    animation-fill-mode: both;
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translate3d(0, -20px, 0);
+    }
+    to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+    }
+}
+
+.fadeInDown {
+    animation-name: fadeInDown;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .icon-box {
+        width: 45px;
+        height: 45px;
+    }
+    
+    .avatar-circle {
+        width: 30px;
+        height: 30px;
+        font-size: 12px;
+    }
+}
+
+/* Add some special styling for loading states */
+.btn-loading {
+    position: relative;
+    pointer-events: none;
+}
+
+.btn-loading .spinner-border {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    margin-left: -8px;
+    margin-top: -8px;
+}
+
+.btn-loading .btn-text {
+    opacity: 0;
+}
+
+/* Chart and report animations */
+.chart-container {
+    transition: all 0.5s ease;
+}
+
+.chart-container:hover {
+    transform: scale(1.02);
+}
+
+/* Activity log item styling */
+.activity-item {
+    border-left: 3px solid var(--bs-dark);
+    padding-left: 1rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.activity-item:before {
+    content: '';
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--bs-primary);
+    left: -7px;
+    top: 0;
+}
+
+.activity-item:hover {
+    border-left-color: var(--bs-primary);
+    transform: translateX(5px);
+}
+
+/* Password strength meter */
+.password-strength-meter {
+    margin-top: 10px;
+}
+
+.password-strength-meter .progress {
+    height: 5px;
+    margin-bottom: 5px;
+}
+
+/* Toggle password visibility button */
+.toggle-password {
+    cursor: pointer;
+}
