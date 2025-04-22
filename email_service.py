@@ -167,7 +167,7 @@ def send_reminder_email(to_email, employee_name, due_date_str=None, include_temp
             {template_note}
             
             <div style="text-align: center; margin: 25px 0;">
-                <a href="https://sbs-weekly-reports.replit.app" style="background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold; display: inline-block;">ACCESS PORTAL NOW</a>
+                <a href="https://weekly-status-report-portal.tarunpuranam.repl.co" style="background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold; display: inline-block;">ACCESS PORTAL NOW</a>
             </div>
             
             <p>If you've already submitted your report or have any questions, please disregard this message.</p>
@@ -228,7 +228,7 @@ def send_report_approved_email(to_email, employee_name, report_date, feedback=No
             {feedback_section}
             
             <div style="text-align: center; margin: 25px 0;">
-                <a href="https://sbs-weekly-reports.replit.app" style="background-color: #5cb85c; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold; display: inline-block;">ACCESS PORTAL</a>
+                <a href="https://weekly-status-report-portal.tarunpuranam.repl.co" style="background-color: #5cb85c; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold; display: inline-block;">ACCESS PORTAL</a>
             </div>
             
             <p style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #eee;">
@@ -290,7 +290,7 @@ def send_report_rejected_email(to_email, employee_name, report_date, feedback=No
             <p>Please log in to the system, review the feedback, and submit a revised report as soon as possible.</p>
             
             <div style="text-align: center; margin: 25px 0;">
-                <a href="https://sbs-weekly-reports.replit.app" style="background-color: #d9534f; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold; display: inline-block;">ACCESS PORTAL</a>
+                <a href="https://weekly-status-report-portal.tarunpuranam.repl.co" style="background-color: #d9534f; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold; display: inline-block;">ACCESS PORTAL</a>
             </div>
             
             <p style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #eee;">
@@ -352,7 +352,7 @@ def send_welcome_email(to_email, employee_name, password=None):
             </ol>
             
             <div style="text-align: center; margin: 25px 0;">
-                <a href="https://sbs-weekly-reports.replit.app" style="background-color: #337ab7; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold; display: inline-block;">ACCESS PORTAL NOW</a>
+                <a href="https://weekly-status-report-portal.tarunpuranam.repl.co" style="background-color: #337ab7; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold; display: inline-block;">ACCESS PORTAL NOW</a>
             </div>
             
             <p style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #eee;">

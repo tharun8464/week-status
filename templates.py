@@ -19,8 +19,6 @@ class TemplateForm(FlaskForm):
         ('text', 'Plain Text'),
         ('markdown', 'Markdown')
     ])
-    is_shared = BooleanField('Share with team members')
-    shared_with = SelectMultipleField('Share with specific users', coerce=str)
 
 def log_template_activity(action, details=None):
     """Log template activity for auditing purposes"""
@@ -43,13 +41,8 @@ def list_templates():
     # Get templates created by the current user
     own_templates = ReportTemplate.query.filter_by(user_id=current_user.id).all()
     
-    # Get templates shared with the current user
+    # Empty list for shared templates since sharing is disabled
     shared_templates = []
-    all_shared = ReportTemplate.query.filter_by(is_shared=True).all()
-    
-    for template in all_shared:
-        if template.user_id != current_user.id and template.is_shared_with(current_user.id):
-            shared_templates.append(template)
     
     return render_template('templates/list.html', 
                            own_templates=own_templates, 
@@ -58,11 +51,7 @@ def list_templates():
 @templates_bp.route('/create', methods=['GET', 'POST'])
 @login_required
 def create_template():
-    # Get all employees for sharing options
-    employees = User.query.filter(User.id != current_user.id, User.role == 'employee').all()
-    
     form = TemplateForm()
-    form.shared_with.choices = [(str(emp.id), emp.name) for emp in employees]
     
     if form.validate_on_submit():
         template = ReportTemplate(
@@ -71,12 +60,8 @@ def create_template():
             description=form.description.data,
             content=form.content.data,
             format=form.format.data,
-            is_shared=form.is_shared.data
+            is_shared=False  # Disable sharing
         )
-        
-        # Handle sharing with specific users
-        if form.is_shared.data and form.shared_with.data:
-            template.share_with_users(form.shared_with.data)
         
         db.session.add(template)
         db.session.commit()
@@ -98,29 +83,16 @@ def edit_template(template_id):
         flash('You cannot edit templates created by other users', 'danger')
         return redirect(url_for('templates.list_templates'))
     
-    # Get all employees for sharing options
-    employees = User.query.filter(User.id != current_user.id, User.role == 'employee').all()
-    
     form = TemplateForm(obj=template)
-    form.shared_with.choices = [(str(emp.id), emp.name) for emp in employees]
-    
-    # Pre-select currently shared users
-    if request.method == 'GET':
-        form.shared_with.data = template.get_shared_with_users()
     
     if form.validate_on_submit():
         template.name = form.name.data
         template.description = form.description.data
         template.content = form.content.data
         template.format = form.format.data
-        template.is_shared = form.is_shared.data
+        template.is_shared = False  # Disable sharing
+        template.shared_with = None  # Clear any existing shares
         template.updated_at = datetime.now()
-        
-        # Handle sharing with specific users
-        if form.is_shared.data and form.shared_with.data:
-            template.share_with_users(form.shared_with.data)
-        elif not form.is_shared.data:
-            template.shared_with = None
         
         db.session.commit()
         
