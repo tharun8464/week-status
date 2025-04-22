@@ -1,4 +1,10 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize dashboard animations
+    initDashboardAnimations();
+    
+    // Initialize Bootstrap tooltips
+    initializeTooltips();
+    
     // Flash message auto-dismiss
     const flashMessages = document.querySelectorAll('.alert-dismissible');
     flashMessages.forEach(function(message) {
@@ -190,5 +196,65 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(() => {
             errorDiv.style.display = 'none';
         }, 5000);
+    }
+    
+    // Dashboard animation functions
+    function initDashboardAnimations() {
+        // Animate cards on dashboard with staggered delay
+        const cards = document.querySelectorAll('.card');
+        cards.forEach((card, index) => {
+            setTimeout(() => {
+                card.classList.add('animated');
+            }, 100 * index);
+        });
+        
+        // Animate submission table rows
+        const tableRows = document.querySelectorAll('.submissions-table tbody tr');
+        tableRows.forEach((row, index) => {
+            setTimeout(() => {
+                row.style.opacity = '0';
+                row.style.transform = 'translateX(-20px)';
+                row.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                
+                setTimeout(() => {
+                    row.style.opacity = '1';
+                    row.style.transform = 'translateX(0)';
+                }, 50);
+            }, 150 * index);
+        });
+        
+        // Add hover effects to calendar days
+        const calendarDays = document.querySelectorAll('.calendar-day');
+        calendarDays.forEach(day => {
+            day.addEventListener('mouseenter', function() {
+                this.style.transform = 'scale(1.1)';
+                this.style.transition = 'transform 0.2s ease';
+                this.style.zIndex = '10';
+            });
+            
+            day.addEventListener('mouseleave', function() {
+                this.style.transform = 'scale(1)';
+                this.style.zIndex = '1';
+            });
+        });
+        
+        // Animate upload success
+        const successMessages = document.querySelectorAll('.alert-success');
+        successMessages.forEach(message => {
+            if (message.textContent.includes('uploaded successfully')) {
+                const uploadZone = document.getElementById('upload-zone');
+                if (uploadZone) {
+                    uploadZone.classList.add('upload-success');
+                }
+            }
+        });
+    }
+    
+    // Initialize Bootstrap tooltips
+    function initializeTooltips() {
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
     }
 });

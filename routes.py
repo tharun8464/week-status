@@ -17,10 +17,10 @@ logging.basicConfig(level=logging.DEBUG)
 # Create the Blueprint
 bp = Blueprint('main', __name__)
 
-# Jinja filter for enumerate
+# Template function for date
 @bp.app_template_global()
-def enumerate(iterable, start=0):
-    return __builtins__.enumerate(iterable, start)
+def date(year, month, day):
+    return datetime(year, month, day).date()
 
 # OneDrive API Configuration
 CLIENT_ID = os.getenv('CLIENT_ID', 'ea86ce4c-a4cc-430a-bc40-d788e4fa38d0')

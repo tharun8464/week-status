@@ -16,11 +16,77 @@
 
 /* Custom card styling for dashboard */
 .report-card {
-    transition: transform 0.2s ease-in-out;
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease;
 }
 
 .report-card:hover {
     transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Dashboard card animations */
+.card {
+    transition: all 0.3s ease;
+    transform-origin: center;
+    will-change: transform, opacity;
+}
+
+.card.animated {
+    animation: cardAppear 0.6s ease-out forwards;
+}
+
+@keyframes cardAppear {
+    0% {
+        opacity: 0;
+        transform: translateY(20px) scale(0.97);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Statistics counter animation */
+.counter-value {
+    font-weight: bold;
+    transition: all 0.5s ease;
+    display: inline-block;
+}
+
+.counter-value.animated {
+    animation: counterPulse 0.5s ease-out;
+}
+
+@keyframes counterPulse {
+    0% { transform: scale(0.8); color: var(--bs-primary); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+/* Pulse animation for calendar items */
+.calendar-day.monday {
+    position: relative;
+    overflow: hidden;
+}
+
+.calendar-day.monday::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    transform: scale(0);
+    animation: pulsate 2s infinite;
+    z-index: -1;
+}
+
+@keyframes pulsate {
+    0% { transform: scale(0.95); opacity: 0.7; }
+    50% { transform: scale(1.05); opacity: 0.3; }
+    100% { transform: scale(0.95); opacity: 0.7; }
 }
 
 /* Custom animation for alerts */
@@ -31,6 +97,20 @@
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(-20px); }
     to { opacity: 1; transform: translateY(0); }
+}
+
+/* File upload success animation */
+.upload-success {
+    animation: successBounce 1s ease-out;
+}
+
+@keyframes successBounce {
+    0% { transform: scale(0.8); }
+    20% { transform: scale(1.1); }
+    40% { transform: scale(0.9); }
+    60% { transform: scale(1.05); }
+    80% { transform: scale(0.95); }
+    100% { transform: scale(1); }
 }
 
 /* Upload zone styling */
