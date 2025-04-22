@@ -80,12 +80,12 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for week in calendar.weeks %}
+                        {% for week_index, week in enumerate(calendar.weeks) %}
                         <tr>
                             {% for day in week %}
                             <td class="text-center">
                                 {% if day != 0 %}
-                                    {% set current_date = date(calendar.year, loop.parent.loop.index0, day) %}
+                                    {% set current_date = date(calendar.year, calendar.month, day) %}
                                     {% set is_monday = loop.index0 == 0 %}
                                     {% set has_submission = current_date in calendar.submissions %}
                                     {% set missing_report = is_monday and current_date in calendar.mondays and not has_submission and current_date < now.date() %}

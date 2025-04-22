@@ -17,6 +17,11 @@ logging.basicConfig(level=logging.DEBUG)
 # Create the Blueprint
 bp = Blueprint('main', __name__)
 
+# Jinja filter for enumerate
+@bp.app_template_global()
+def enumerate(iterable, start=0):
+    return __builtins__.enumerate(iterable, start)
+
 # OneDrive API Configuration
 CLIENT_ID = os.getenv('CLIENT_ID', 'ea86ce4c-a4cc-430a-bc40-d788e4fa38d0')
 CLIENT_SECRET = os.getenv('CLIENT_SECRET', 'm_n8Q~nR4ozZiUIdadf1FptciOAzObWc0ME1Wa.H')
@@ -150,6 +155,7 @@ def get_calendar_data(employee_id, year, month):
         'weeks': cal,
         'month_name': calendar.month_name[month],
         'year': year,
+        'month': month,
         'submissions': submission_dates,
         'mondays': mondays
     }
