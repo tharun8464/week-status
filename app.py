@@ -157,7 +157,8 @@ def schedule_reminders():
         employees = Employee.query.all()
         
         now = datetime.now()
-        next_monday = now.date() + timedelta(days=(7 - now.date().weekday()) % 7)
+        # Get next Sunday (end of current week)
+        next_sunday = now.date() + timedelta(days=(6 - now.date().weekday()) % 7)
         current_date = now.strftime('%Y-%m-%d')
         
         for employee in employees:
@@ -196,7 +197,7 @@ def schedule_reminders():
                         {'<p><strong class="warning">You have not yet submitted your report for this week.</strong> Please submit it as soon as possible.</p>' 
                         if not has_submitted else '<p>Thank you for submitting your report this week!</p>'}
                         
-                        <p>Next report due date: <strong>{next_monday.strftime('%A, %B %d, %Y')} by 9:00 AM</strong></p>
+                        <p>Next report due date: <strong>{next_sunday.strftime('%A, %B %d, %Y')} by 11:59 PM</strong></p>
                         
                         <p>Please log in to the Weekly Status Report Portal to {'upload' if not has_submitted else 'view'} your report.</p>
                         
@@ -218,8 +219,8 @@ def schedule_reminders():
             )
             logging.info(f"{'Reminder' if not has_submitted else 'Confirmation'} email sent to {employee.email}")
 
-# Set up the scheduler
-schedule.every().monday.at("09:00").do(schedule_reminders)
+# Set up the scheduler to send reminders on Sunday evening
+schedule.every().sunday.at("20:00").do(schedule_reminders)
 
 def run_scheduler():
     while True:
@@ -251,25 +252,28 @@ def get_calendar_data(employee_id, year, month):
         # Calculate the calendar grid
         cal = calendar.monthcalendar(year, month)
         
-        # Get the first Monday of the month (or before)
+        # Get the first Sunday of the month (or before)
         first_day = date(year, month, 1)
-        first_monday = first_day - timedelta(days=first_day.weekday())
+        # If first_day is Sunday (6), don't adjust; otherwise adjust back to previous Sunday
+        offset = first_day.weekday() + 1 if first_day.weekday() < 6 else 0
+        first_sunday = first_day - timedelta(days=offset)
         
-        # Calculate which Mondays should have submissions
-        mondays = []
-        current_monday = first_monday
-        while current_monday.month == month or (current_monday.month < month and current_monday.year == year):
-            if current_monday.month == month:
-                mondays.append(current_monday)
-            current_monday += timedelta(days=7)
+        # Calculate which Sundays should have submissions
+        sundays = []
+        current_sunday = first_sunday
+        while current_sunday.month <= month and current_sunday.year == year:
+            if current_sunday.month == month:
+                sundays.append(current_sunday)
+            current_sunday += timedelta(days=7)
         
         # Mark submissions as completed or missing
         calendar_data = {
             'weeks': cal,
             'month_name': calendar.month_name[month],
             'year': year,
+            'month': month,
             'submissions': submissions,
-            'mondays': mondays
+            'mondays': sundays  # We keep the same variable name for compatibility
         }
         
         return calendar_data
@@ -399,9 +403,9 @@ def dashboard():
                 logging.error(f"File upload error: {str(e)}")
                 flash(f"Error: {str(e)}", "danger")
     
-    # Calculate next Monday for due date display
+    # Calculate next Sunday for due date display
     today = now.date()
-    next_monday = today + timedelta(days=(7 - today.weekday()))
+    next_sunday = today + timedelta(days=(6 - today.weekday()) % 7)
     
     # Get calendar data for current month
     calendar_data = get_calendar_data(session['employee_id'], now.year, now.month)
@@ -410,7 +414,7 @@ def dashboard():
                          name=session['employee_name'], 
                          submissions=recent_submissions, 
                          now=now, 
-                         next_monday=next_monday,
+                         next_sunday=next_sunday,
                          calendar=calendar_data)
 
 @app.route('/logout')
