@@ -239,7 +239,13 @@ def login():
             return redirect(url_for('main.index'))
         
         # Check password - handle both hashed and plain text passwords for backward compatibility
-        if check_password_hash(user.password, password) if user.password.startswith('pbkdf2:sha256:') else user.password == password:
+        password_matches = False
+        if user.password.startswith('pbkdf2:sha256:'):
+            password_matches = check_password_hash(user.password, password)
+        else:
+            password_matches = (user.password == password)
+            
+        if password_matches:
             # Use Flask-Login to login the user
             login_user(user)
             
@@ -311,11 +317,21 @@ def dashboard():
                 # Upload to OneDrive
                 file_info = upload_to_onedrive(file.read(), session['folder_id'], filename)
                 
+                # Check if this is a late submission with a weekend date
+                submission_date = now
+                if 'is_late_submission' in request.form and request.form.get('weekend_date'):
+                    try:
+                        weekend_date = datetime.strptime(request.form.get('weekend_date'), '%Y-%m-%d')
+                        submission_date = weekend_date
+                        logging.debug(f"Late submission for weekend date: {weekend_date}")
+                    except Exception as e:
+                        logging.error(f"Error parsing weekend date: {str(e)}")
+                
                 # Record in database
                 new_report = Report(
                     id=str(uuid.uuid4()),
                     employee_id=employee_id,
-                    submission_date=now,
+                    submission_date=submission_date,
                     filename=filename
                 )
                 db.session.add(new_report)
