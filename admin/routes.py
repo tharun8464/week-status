@@ -12,7 +12,8 @@ from wtforms.validators import DataRequired, Email, EqualTo, Length, Optional
 from functools import wraps
 
 from models import db, User, Report, ActivityLog
-from routes import send_email, create_onedrive_folder
+from routes import create_onedrive_folder
+import email_service
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -211,26 +212,15 @@ def add_employee():
             
             # Send welcome email if requested
             if form.send_welcome_email.data:
-                email_subject = "Welcome to SBS Corp Weekly Status Report System"
-                email_body = f"""
-                <html>
-                <body>
-                    <h2>Welcome to SBS Corp Weekly Status Report System</h2>
-                    <p>Hello {form.name.data},</p>
-                    <p>An account has been created for you on the SBS Corp Weekly Status Report System.</p>
-                    <p><strong>Your login details:</strong></p>
-                    <ul>
-                        <li><strong>Email:</strong> {form.email.data}</li>
-                        <li><strong>Password:</strong> {form.password.data}</li>
-                    </ul>
-                    <p>Please login at <a href="{request.host_url}">{request.host_url}</a></p>
-                    <p>You will be required to submit weekly status reports by the end of each week.</p>
-                    <p>Thank you,<br>SBS Corp Admin</p>
-                </body>
-                </html>
-                """
-                send_email(form.email.data, email_subject, email_body)
-                flash(f"Employee created successfully and welcome email sent to {form.email.data}", "success")
+                success = email_service.send_welcome_email(
+                    to_email=form.email.data,
+                    employee_name=form.name.data,
+                    password=form.password.data
+                )
+                if success:
+                    flash(f"Employee created successfully and welcome email sent to {form.email.data}", "success")
+                else:
+                    flash(f"Employee created successfully, but welcome email could not be sent. Check email settings.", "warning")
             else:
                 flash("Employee created successfully", "success")
             
