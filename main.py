@@ -54,8 +54,8 @@ def create_app():
     app.register_blueprint(main_bp)
     
     # Import and register admin routes
-    from admin.routes import admin_bp
-    app.register_blueprint(admin_bp, url_prefix='/admin')
+    from admin import bp as admin_bp
+    app.register_blueprint(admin_bp)
     
     # Register error handlers
     @app.errorhandler(404)
