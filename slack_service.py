@@ -122,6 +122,13 @@ def send_reminder_notification(employee_name, due_date_str=None):
             }
         },
         {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": "*<https://sbs-weekly-reports.replit.app|ACCESS PORTAL NOW>*"
+            }
+        },
+        {
             "type": "divider"
         },
         {
@@ -208,6 +215,14 @@ def send_report_status_notification(employee_name, report_filename, status, feed
         })
     
     blocks.append({
+        "type": "section",
+        "text": {
+            "type": "mrkdwn",
+            "text": "*<https://sbs-weekly-reports.replit.app|ACCESS PORTAL NOW>*"
+        }
+    })
+    
+    blocks.append({
         "type": "divider"
     })
     
@@ -260,6 +275,13 @@ def send_new_employee_notification(employee_name, employee_email):
             "text": {
                 "type": "mrkdwn",
                 "text": "A new employee has been added to the Weekly Status Report System."
+            }
+        },
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": "*<https://sbs-weekly-reports.replit.app|ACCESS PORTAL NOW>*"
             }
         },
         {
