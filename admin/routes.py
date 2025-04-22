@@ -712,8 +712,19 @@ def settings_notifications():
         elif action == 'update_slack_settings':
             # Process Slack settings form
             try:
-                # In a production environment, you would update these in the environment
-                # or a config file. This is a simplified version for demonstration.
+                slack_bot_token = request.form.get('slack_bot_token')
+                slack_channel_id = request.form.get('slack_channel_id')
+                
+                # In a production environment, these would be stored in environment variables
+                # For demonstration, we're using the environment variables directly
+                if slack_bot_token:
+                    os.environ['SLACK_BOT_TOKEN'] = slack_bot_token
+                if slack_channel_id:
+                    os.environ['SLACK_CHANNEL_ID'] = slack_channel_id
+                
+                # Reload the slack service to use new settings
+                reload(slack_service)
+                
                 flash("Slack settings updated successfully", "success")
                 log_admin_activity("Updated Slack notification settings")
             except Exception as e:

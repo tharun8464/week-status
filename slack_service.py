@@ -7,14 +7,20 @@ from slack_sdk.errors import SlackApiError
 
 logger = logging.getLogger(__name__)
 
-# Slack credentials from environment variables
-SLACK_BOT_TOKEN = os.environ.get('SLACK_BOT_TOKEN')
-SLACK_CHANNEL_ID = os.environ.get('SLACK_CHANNEL_ID')
+def get_slack_token():
+    """Get the Slack bot token from environment."""
+    return os.environ.get('SLACK_BOT_TOKEN')
 
-# Initialize the Slack client if token is available
-slack_client = None
-if SLACK_BOT_TOKEN:
-    slack_client = WebClient(token=SLACK_BOT_TOKEN)
+def get_slack_channel():
+    """Get the Slack channel ID from environment."""
+    return os.environ.get('SLACK_CHANNEL_ID')
+
+def get_slack_client():
+    """Initialize and return the Slack client with current token."""
+    token = get_slack_token()
+    if token:
+        return WebClient(token=token)
+    return None
 
 
 def is_slack_configured():
@@ -24,7 +30,9 @@ def is_slack_configured():
     Returns:
         bool: True if Slack is configured, False otherwise
     """
-    return bool(SLACK_BOT_TOKEN and SLACK_CHANNEL_ID and slack_client)
+    token = get_slack_token()
+    channel = get_slack_channel()
+    return bool(token and channel)
 
 
 def send_slack_message(message, blocks=None, thread_ts=None):
@@ -43,10 +51,13 @@ def send_slack_message(message, blocks=None, thread_ts=None):
         logger.warning("Slack not configured. Set SLACK_BOT_TOKEN and SLACK_CHANNEL_ID environment variables.")
         return False
     
+    client = get_slack_client()
+    channel = get_slack_channel()
+    
     try:
         # Send the message to the specified channel
-        response = slack_client.chat_postMessage(
-            channel=SLACK_CHANNEL_ID,
+        response = client.chat_postMessage(
+            channel=channel,
             text=message,
             blocks=blocks,
             thread_ts=thread_ts
