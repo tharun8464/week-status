@@ -1,6 +1,6 @@
 import os
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
@@ -81,15 +81,21 @@ def send_reminder_notification(employee_name, due_date_str=None):
     Returns:
         bool: True if the notification was sent successfully, False otherwise
     """
-    # If due date not provided, use next Monday
+    # If due date not provided, use next Sunday
     if not due_date_str:
         now = datetime.now()
-        days_until_monday = (7 - now.weekday()) % 7
-        if days_until_monday == 0:
-            days_until_monday = 7
-        next_monday = now.replace(hour=9, minute=0, second=0, microsecond=0)
-        next_monday = next_monday.replace(day=next_monday.day + days_until_monday)
-        due_date_str = next_monday.strftime("%A, %B %d, %Y at %I:%M %p")
+        # For Sunday (weekday 6 in Python's datetime, where Monday is 0)
+        days_until_sunday = (6 - now.weekday()) % 7
+        if days_until_sunday == 0:
+            days_until_sunday = 7
+        next_sunday = now + timedelta(days=days_until_sunday)
+        next_sunday = next_sunday.replace(hour=23, minute=59, second=59, microsecond=0)
+        due_date_str = next_sunday.strftime("%A, %B %d, %Y at %I:%M %p")
+    
+    # Get current week number and year
+    now = datetime.now()
+    current_week = now.isocalendar()[1]  # ISO week number
+    current_year = now.year
     
     # Create rich formatted blocks for the message
     blocks = [
@@ -97,7 +103,7 @@ def send_reminder_notification(employee_name, due_date_str=None):
             "type": "header",
             "text": {
                 "type": "plain_text",
-                "text": "⚠️ Weekly Status Report Reminder",
+                "text": f"⚠️ Weekly Status Report Reminder - Week {current_week}, {current_year}",
                 "emoji": True
             }
         },
@@ -112,7 +118,7 @@ def send_reminder_notification(employee_name, due_date_str=None):
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": f"This is a friendly reminder that a weekly status report is due by *{due_date_str}*."
+                "text": f"This is a friendly reminder that your *Weekly Status Report for Week {current_week}, {current_year}* is due by *{due_date_str}*."
             }
         },
         {

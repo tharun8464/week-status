@@ -93,22 +93,39 @@ def send_reminder_email(to_email, employee_name, due_date_str=None):
     # If due date not provided, use a generic message
     due_date_text = f"by <strong>{due_date_str}</strong>" if due_date_str else "soon"
     
-    subject = "[REMINDER] Weekly Status Report Due"
+    # Get current week number and year for the subject
+    from datetime import datetime
+    now = datetime.now()
+    current_week = now.isocalendar()[1]  # ISO week number
+    current_year = now.year
+    
+    subject = f"[REMINDER] Weekly Status Report for Week {current_week}, {current_year} Due"
     
     html_content = f"""
     <html>
     <body style="font-family: Arial, Helvetica, sans-serif; line-height: 1.6; color: #333;">
         <div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 5px; background-color: #f9f9f9;">
-            <h2 style="color: #d9534f; border-bottom: 1px solid #eee; padding-bottom: 10px;">Weekly Report Reminder</h2>
+            <h2 style="color: #d9534f; border-bottom: 1px solid #eee; padding-bottom: 10px;">Weekly Status Report Reminder</h2>
             
             <p>Hello {employee_name},</p>
             
-            <p>This is a friendly reminder that your weekly status report is due {due_date_text}.</p>
+            <p>We hope this email finds you well. This is a friendly reminder that your <strong>Weekly Status Report for Week {current_week}, {current_year}</strong> is due {due_date_text}.</p>
             
-            <p>Please login to the SBS Corp Weekly Status Report System to submit your report.</p>
+            <p>Please login to the SBS Corp Weekly Status Report System to submit your report. Timely submission helps us maintain effective team coordination and project tracking.</p>
+            
+            <div style="background-color: #f0f0f0; padding: 15px; border-left: 4px solid #007bff; margin: 15px 0;">
+                <p style="margin: 0;"><strong>Report Details:</strong></p>
+                <ul style="margin-top: 5px;">
+                    <li>Week: {current_week}, {current_year}</li>
+                    <li>Due: {due_date_str}</li>
+                    <li>Format: Standard weekly status report</li>
+                </ul>
+            </div>
+            
+            <p>If you've already submitted your report or have any questions, please disregard this message.</p>
             
             <p style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #eee;">
-                Thank you,<br>
+                Thank you for your attention to this matter,<br>
                 <strong>SBS Corp Admin Team</strong>
             </p>
         </div>

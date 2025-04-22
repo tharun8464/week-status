@@ -12,7 +12,7 @@ from sqlalchemy import desc
 from wtforms.validators import DataRequired, Email, EqualTo, Length, Optional
 from functools import wraps
 
-from models import db, User, Report, ActivityLog
+from models import db, User, Report, ActivityLog, Notification
 from routes import create_onedrive_folder
 import email_service
 import slack_service
@@ -548,13 +548,18 @@ def send_reminders():
             # Check if this employee has submitted (for customized message)
             has_submitted = employee.id in submitted_ids
             
-            # Calculate due date for the email (next Monday)
+            # Calculate due date for the email (next Sunday)
             today = datetime.now()
-            days_until_monday = (7 - today.weekday()) % 7
-            if days_until_monday == 0:
-                days_until_monday = 7
-            next_monday = today + timedelta(days=days_until_monday)
-            due_date_str = next_monday.strftime("%A, %B %d, %Y at 9:00 AM")
+            # For Sunday (weekday 6 in Python's datetime, where Monday is 0)
+            days_until_sunday = (6 - today.weekday()) % 7
+            if days_until_sunday == 0:
+                days_until_sunday = 7
+            next_sunday = today + timedelta(days=days_until_sunday)
+            due_date_str = next_sunday.strftime("%A, %B %d, %Y at 11:59 PM")
+            
+            # Get the week number for the notification
+            current_week = today.isocalendar()[1]
+            current_year = today.year
             
             # Try email first
             email_success = email_service.send_reminder_email(
@@ -571,6 +576,14 @@ def send_reminders():
             
             if email_success or slack_success:
                 count += 1
+                
+                # Create notification for the employee in the database
+                notification = Notification(
+                    user_id=employee.id,
+                    message=f"Reminder: Your Weekly Status Report for Week {current_week}, {current_year} is due {due_date_str}",
+                    type="warning"
+                )
+                db.session.add(notification)
                 
                 # Log which channels were used for reminders
                 if email_success and slack_success:
