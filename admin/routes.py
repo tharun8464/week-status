@@ -667,6 +667,141 @@ def activity_logs():
     log_admin_activity("Viewed activity logs")
     return render_template('admin/activity_logs.html', logs=logs, now=datetime.now())
 
+# Team Performance Data API
+@bp.route('/api/team-performance')
+@login_required
+@admin_required
+def team_performance_data():
+    try:
+        # Get weeks parameter (how many weeks to look back)
+        weeks = int(request.args.get('weeks', 8))
+        if weeks < 4:
+            weeks = 4
+        elif weeks > 12:
+            weeks = 12
+            
+        # Current date and time
+        now = datetime.now()
+        
+        # Get start date (weeks ago from today)
+        start_date = now - timedelta(weeks=weeks)
+        
+        # Calculate week boundaries for the requested period
+        week_boundaries = []
+        
+        # Start from the Sunday before the start_date
+        temp_date = start_date - timedelta(days=start_date.weekday() + 1)
+        
+        # Generate week boundaries for the specified number of weeks
+        for i in range(weeks + 1):  # +1 to include the current week
+            sunday = temp_date + timedelta(days=7 * i)
+            sunday = sunday.replace(hour=23, minute=59, second=59)
+            
+            # The week label is the month name and day
+            week_label = sunday.strftime("%b %d")
+            
+            week_boundaries.append({
+                'date': sunday,
+                'label': week_label
+            })
+        
+        # Get all active employees
+        employees = User.query.filter_by(role='employee', active=True).all()
+        
+        # Get report data for all employees within the period
+        reports = Report.query.filter(
+            Report.submission_date >= start_date,
+            Report.employee_id.in_([e.id for e in employees])
+        ).order_by(Report.submission_date).all()
+        
+        # Process the data
+        team_data = []
+        employee_data = []
+        
+        # For each employee, calculate their report status for each week
+        for employee in employees:
+            emp_reports = [r for r in reports if r.employee_id == employee.id]
+            weeks_data = []
+            on_time_count = 0
+            
+            for i in range(len(week_boundaries) - 1):
+                week_start = week_boundaries[i]['date']
+                week_end = week_boundaries[i+1]['date']
+                
+                # Filter reports for this week
+                week_reports = [r for r in emp_reports if week_start <= r.submission_date <= week_end]
+                
+                # Determine status (0 = missing, 1 = late, 2 = on-time)
+                status = 0  # Default: missing
+                
+                if week_reports:
+                    # Check if the earliest submission was before the deadline (Sunday 11:59 PM)
+                    earliest_submission = min(week_reports, key=lambda r: r.submission_date)
+                    
+                    # The deadline is the end of the week (Sunday 11:59 PM)
+                    if earliest_submission.submission_date <= week_end:
+                        status = 2  # On-time
+                        on_time_count += 1
+                    else:
+                        status = 1  # Late
+                
+                weeks_data.append(status)
+            
+            # Calculate on-time percentage
+            on_time_percentage = (on_time_count / (len(week_boundaries) - 1)) * 100 if len(week_boundaries) > 1 else 0
+            
+            # Calculate trend (positive if recent weeks better than earlier weeks)
+            first_half = weeks_data[:len(weeks_data)//2]
+            second_half = weeks_data[len(weeks_data)//2:]
+            
+            first_half_avg = sum(first_half) / len(first_half) if first_half else 0
+            second_half_avg = sum(second_half) / len(second_half) if second_half else 0
+            
+            trend = 'up' if second_half_avg > first_half_avg else ('down' if second_half_avg < first_half_avg else 'neutral')
+            
+            # Add to employee data array
+            employee_data.append({
+                'id': employee.id,
+                'name': employee.name,
+                'weeks': weeks_data,
+                'on_time_percentage': round(on_time_percentage, 1),
+                'trend': trend
+            })
+        
+        # Aggregate team data for each week
+        for i in range(len(week_boundaries) - 1):
+            on_time = sum(1 for e in employee_data if i < len(e['weeks']) and e['weeks'][i] == 2)
+            late = sum(1 for e in employee_data if i < len(e['weeks']) and e['weeks'][i] == 1)
+            missing = sum(1 for e in employee_data if i < len(e['weeks']) and e['weeks'][i] == 0)
+            
+            total = on_time + late + missing
+            
+            team_data.append({
+                'label': week_boundaries[i]['label'],
+                'on_time': on_time,
+                'late': late,
+                'missing': missing,
+                'on_time_percentage': (on_time / total) * 100 if total > 0 else 0,
+                'late_percentage': (late / total) * 100 if total > 0 else 0,
+                'missing_percentage': (missing / total) * 100 if total > 0 else 0
+            })
+        
+        # Return JSON response
+        return jsonify({
+            'success': True,
+            'weeks': [b['label'] for b in week_boundaries[:-1]],  # exclude the last boundary as it's just for calculation
+            'team_data': team_data,
+            'employee_data': employee_data
+        })
+        
+    except Exception as e:
+        logging.error(f"Error generating team performance data: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': f"An error occurred while processing performance data: {str(e)}"
+        }), 500
+
+
 # Admin profile
 @bp.route('/profile', methods=['GET', 'POST'])
 @login_required
