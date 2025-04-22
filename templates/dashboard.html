@@ -111,11 +111,11 @@
                             <td class="text-center">
                                 {% if day != 0 %}
                                     {% set current_date = date(calendar.year, calendar.month, day) %}
-                                    {% set is_monday = loop.index0 == 0 %}
                                     {% set is_sunday = loop.index0 == 6 %}
                                     {% set has_submission = current_date in calendar.submissions %}
-                                    {% set missing_report = (is_monday or is_sunday) and current_date in calendar.mondays and not has_submission and current_date < now.date() %}
+                                    {% set missing_report = is_sunday and current_date < now.date() and not has_submission %}
                                     
+                                    {% set is_monday = loop.index0 == 0 %}
                                     <div class="calendar-day {% if is_monday %}monday{% endif %} {% if missing_report %}text-danger{% elif has_submission %}text-success{% endif %}">
                                         {{ day }}
                                         {% if has_submission %}

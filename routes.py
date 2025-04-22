@@ -139,17 +139,19 @@ def get_calendar_data(employee_id, year, month):
     # Calculate the calendar grid
     cal = calendar.monthcalendar(year, month)
     
-    # Get the first Monday of the month (or before)
+    # Get the first Sunday of the month (or before)
     first_day = date(year, month, 1)
-    first_monday = first_day - timedelta(days=first_day.weekday())
+    # If first_day is Sunday (6), don't adjust; otherwise adjust back to previous Sunday
+    offset = first_day.weekday() + 1 if first_day.weekday() < 6 else 0
+    first_sunday = first_day - timedelta(days=offset)
     
-    # Calculate which Mondays should have submissions
-    mondays = []
-    current_monday = first_monday
-    while current_monday.month == month or (current_monday.month < month and current_monday.year == year):
-        if current_monday.month == month:
-            mondays.append(current_monday)
-        current_monday += timedelta(days=7)
+    # Calculate Sundays in the month (these are the report due dates)
+    sundays = []
+    current_sunday = first_sunday
+    while current_sunday.month <= month and current_sunday.year == year:
+        if current_sunday.month == month:
+            sundays.append(current_sunday)
+        current_sunday += timedelta(days=7)
     
     # Mark submissions as completed or missing
     calendar_data = {
@@ -158,7 +160,7 @@ def get_calendar_data(employee_id, year, month):
         'year': year,
         'month': month,
         'submissions': submission_dates,
-        'mondays': mondays
+        'mondays': sundays  # We keep the same variable name for compatibility
     }
     
     return calendar_data
@@ -354,14 +356,15 @@ def dashboard():
     today = now.date()
     next_monday = today + timedelta(days=(7 - today.weekday()))
     
-    # Generate past weekend dates for the dropdown
+    # Generate past weekend dates for the dropdown (Sundays)
     weekend_dates = []
     for i in range(8):
-        past_monday = today - timedelta(days=7*(i+1) + today.weekday())
-        weekend_date = past_monday + timedelta(days=6)  # Saturday
+        # Calculate past Sundays directly
+        days_since_sunday = (today.weekday() + 1) % 7  # 0 if today is Sunday, otherwise days since last Sunday
+        past_sunday = today - timedelta(days=days_since_sunday + 7*i)
         weekend_dates.append({
-            'value': weekend_date.strftime('%Y-%m-%d'),
-            'display': weekend_date.strftime('%b %d, %Y')
+            'value': past_sunday.strftime('%Y-%m-%d'),
+            'display': past_sunday.strftime('%b %d, %Y') + ' (Sunday)'
         })
     
     # Get calendar data for current month
