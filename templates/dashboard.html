@@ -181,6 +181,70 @@
             </div>
         </div>
         
+        <!-- Sample Report Templates -->
+        <div class="card bg-dark border-0 shadow-sm mb-4">
+            <div class="card-header bg-dark border-bottom border-secondary">
+                <h4 class="mb-0">
+                    <i class="fas fa-file-alt text-primary me-2"></i> Sample Templates
+                </h4>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-3">
+                    Please use one of these templates for your weekly status report submission. You can customize them to fit your needs.
+                </p>
+                
+                <div class="list-group mb-0">
+                    <!-- Template 1: Interactive HTML Template -->
+                    <a href="{{ url_for('static', filename='sample_report_template.html') }}" target="_blank" class="list-group-item list-group-item-action bg-dark border-secondary d-flex align-items-center">
+                        <div class="template-icon bg-primary bg-opacity-25 text-primary me-3">
+                            <i class="fas fa-file-code"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0">Interactive Web Template</h6>
+                            <small class="text-muted">Edit online and save as PDF</small>
+                        </div>
+                        <div class="ms-auto">
+                            <span class="badge bg-primary rounded-pill">
+                                <i class="fas fa-external-link-alt"></i>
+                            </span>
+                        </div>
+                    </a>
+                    
+                    <!-- Template 2: Text File -->
+                    <a href="{{ url_for('static', filename='sample_report_template.txt') }}" download="SBS_Weekly_Report_Template.txt" class="list-group-item list-group-item-action bg-dark border-secondary d-flex align-items-center">
+                        <div class="template-icon bg-info bg-opacity-25 text-info me-3">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0">Text File Template</h6>
+                            <small class="text-muted">Simple text format (download)</small>
+                        </div>
+                        <div class="ms-auto">
+                            <span class="badge bg-info rounded-pill">
+                                <i class="fas fa-download"></i>
+                            </span>
+                        </div>
+                    </a>
+                    
+                    <!-- Template Preview Button -->
+                    <button type="button" class="list-group-item list-group-item-action bg-dark border-secondary d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#templatePreviewModal">
+                        <div class="template-icon bg-success bg-opacity-25 text-success me-3">
+                            <i class="fas fa-eye"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0">Preview Sample Format</h6>
+                            <small class="text-muted">See what should be included</small>
+                        </div>
+                        <div class="ms-auto">
+                            <span class="badge bg-success rounded-pill">
+                                <i class="fas fa-search"></i>
+                            </span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
         <div class="card bg-dark border-0 shadow-sm">
             <div class="card-header bg-dark border-bottom border-secondary d-flex justify-content-between align-items-center">
                 <h4 class="mb-0">
@@ -263,6 +327,110 @@
         </div>
     </div>
 </div>
+<!-- Template Preview Modal -->
+<div class="modal fade" id="templatePreviewModal" tabindex="-1" aria-labelledby="templatePreviewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content bg-dark text-light border-secondary">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title" id="templatePreviewModalLabel">
+                    <i class="fas fa-file-alt text-primary me-2"></i> Sample Report Format
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="p-3 bg-dark border border-secondary rounded mb-4">
+                    <h4 class="text-center border-bottom border-secondary pb-2">SBS CORPORATION - WEEKLY STATUS REPORT</h4>
+                    
+                    <div class="row mb-3 mt-4">
+                        <div class="col-md-6">
+                            <div class="mb-2">
+                                <strong class="text-primary">EMPLOYEE NAME:</strong> 
+                                <span class="text-light">[Your Name]</span>
+                            </div>
+                            <div class="mb-2">
+                                <strong class="text-primary">DEPARTMENT:</strong> 
+                                <span class="text-light">[Your Department]</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-2">
+                                <strong class="text-primary">WEEK ENDING:</strong> 
+                                <span class="text-light">[Sunday Date]</span>
+                            </div>
+                            <div class="mb-2">
+                                <strong class="text-primary">MANAGER:</strong> 
+                                <span class="text-light">[Manager Name]</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h5 class="border-bottom border-secondary pb-2 text-info">
+                            <i class="fas fa-tasks me-2"></i> ACCOMPLISHMENTS THIS WEEK
+                        </h5>
+                        <ul class="ps-3 mt-3">
+                            <li>Completed [project name] milestone</li>
+                            <li>Attended team meeting on [date]</li>
+                            <li>Resolved [number] customer issues</li>
+                            <li>Finished [task] ahead of schedule</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h5 class="border-bottom border-secondary pb-2 text-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i> CHALLENGES / BLOCKERS
+                        </h5>
+                        <ul class="ps-3 mt-3">
+                            <li>Delayed response from [team/client]</li>
+                            <li>Technical issue with [system]</li>
+                            <li>Need additional resources for [task]</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h5 class="border-bottom border-secondary pb-2 text-success">
+                            <i class="fas fa-calendar-day me-2"></i> PLANS FOR NEXT WEEK
+                        </h5>
+                        <ul class="ps-3 mt-3">
+                            <li>Start new phase of [project]</li>
+                            <li>Schedule meeting with [client/team]</li>
+                            <li>Complete documentation for [feature]</li>
+                            <li>Review and test [component]</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h5 class="border-bottom border-secondary pb-2 text-primary">
+                            <i class="fas fa-sticky-note me-2"></i> ADDITIONAL NOTES
+                        </h5>
+                        <p class="ps-3 mt-3">
+                            [Any additional information that doesn't fit in the above sections]
+                        </p>
+                    </div>
+                    
+                    <div class="text-end pt-3 mt-4 border-top border-secondary">
+                        <strong class="text-primary">SUBMISSION DATE:</strong> 
+                        <span class="text-light">[Date of Submission]</span>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Tip:</strong> Download one of the templates and customize it to include this information.
+                </div>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="{{ url_for('static', filename='sample_report_template.txt') }}" download="SBS_Weekly_Report_Template.txt" class="btn btn-info">
+                    <i class="fas fa-download me-1"></i> Download Text Template
+                </a>
+                <a href="{{ url_for('static', filename='sample_report_template.html') }}" target="_blank" class="btn btn-primary">
+                    <i class="fas fa-external-link-alt me-1"></i> Open HTML Template
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block additional_scripts %}
@@ -277,6 +445,32 @@ document.addEventListener('DOMContentLoaded', function() {
             weekendDateSelection.style.display = this.checked ? 'block' : 'none';
         });
     }
+    
+    // Initialize tooltips
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+    
+    // Add template icon styling
+    const style = document.createElement('style');
+    style.textContent = `
+        .template-icon {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            font-size: 1.2rem;
+        }
+        
+        .list-group-item:hover .template-icon {
+            transform: scale(1.1);
+            transition: transform 0.2s ease;
+        }
+    `;
+    document.head.appendChild(style);
 });
 </script>
 {% endblock %}

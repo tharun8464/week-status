@@ -1,0 +1,36 @@
+SBS CORPORATION - WEEKLY STATUS REPORT
+
+EMPLOYEE NAME: [Your Name]
+WEEK ENDING: [Sunday Date]
+DEPARTMENT: [Your Department]
+MANAGER: [Manager Name]
+
+-----------------------------------------
+1. ACCOMPLISHMENTS THIS WEEK:
+-----------------------------------------
+• [List major tasks completed]
+• [List project milestones achieved]
+• [List any significant contributions]
+• [List meetings attended and their outcomes]
+
+-----------------------------------------
+2. CHALLENGES / BLOCKERS:
+-----------------------------------------
+• [List any challenges or obstacles faced]
+• [List any blockers preventing progress]
+• [List any resources needed]
+
+-----------------------------------------
+3. PLANS FOR NEXT WEEK:
+-----------------------------------------
+• [List tasks planned for next week]
+• [List upcoming milestones]
+• [List meetings scheduled]
+
+-----------------------------------------
+4. ADDITIONAL NOTES:
+-----------------------------------------
+[Any additional information or comments that don't fit in the above sections]
+
+-----------------------------------------
+SUBMISSION DATE: [Date of Submission]
