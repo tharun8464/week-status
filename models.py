@@ -14,7 +14,6 @@ class Employee(UserMixin, db.Model):
     password = db.Column(db.String(100), nullable=False)
     folder_id = db.Column(db.String(100), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.now)
-    updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
     
     # Relationship with reports
     reports = db.relationship('Report', backref='employee', lazy=True, cascade="all, delete-orphan")
