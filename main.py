@@ -11,6 +11,17 @@ logger = logging.getLogger(__name__)
 
 def create_app():
     app = Flask(__name__)
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+        'pool_pre_ping': True,
+        'pool_recycle': 300,
+        'connect_args': {
+            'keepalives': 1,
+            'keepalives_idle': 30,
+            'keepalives_interval': 10,
+            'keepalives_count': 5
+        }
+    }
     app.secret_key = os.environ.get("SESSION_SECRET", os.getenv('FLASK_SECRET_KEY', 'your-secret-key'))
     
     # Configure database
@@ -105,8 +116,6 @@ def create_admin_user():
         #     logger.error(f"Error resetting admin password: {str(e)}")
 
 app = create_app()
-
-from flask import render_template
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
