@@ -238,12 +238,14 @@ def login():
             flash("Email not registered", "danger")
             return redirect(url_for('main.index'))
         
-        # Check password - handle both hashed and plain text passwords for backward compatibility
+        # Check password - handle different hash algorithms and plain text passwords
         password_matches = False
-        if user.password.startswith('pbkdf2:sha256:'):
+        if user.password.startswith('pbkdf2:sha256:') or user.password.startswith('scrypt:'):
             password_matches = check_password_hash(user.password, password)
+            logging.debug(f"Checking password hash: {password_matches}")
         else:
             password_matches = (user.password == password)
+            logging.debug(f"Checking plain password: {password_matches}")
             
         if password_matches:
             # Use Flask-Login to login the user

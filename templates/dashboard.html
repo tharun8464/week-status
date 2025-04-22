@@ -265,3 +265,19 @@
     </div>
 </div>
 {% endblock %}
+
+{% block additional_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Weekend date selection toggle
+    const lateSubmissionCheck = document.getElementById('lateSubmissionCheck');
+    const weekendDateSelection = document.getElementById('weekendDateSelection');
+    
+    if (lateSubmissionCheck && weekendDateSelection) {
+        lateSubmissionCheck.addEventListener('change', function() {
+            weekendDateSelection.style.display = this.checked ? 'block' : 'none';
+        });
+    }
+});
+</script>
+{% endblock %}

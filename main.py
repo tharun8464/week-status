@@ -94,6 +94,15 @@ def create_admin_user():
             logger.error(f"Error creating admin user: {str(e)}")
     else:
         logger.info("Admin user already exists.")
+        
+        # Uncomment to reset admin password if needed
+        # try:
+        #     admin.password = generate_password_hash('admin123')
+        #     db.session.commit()
+        #     logger.info("Admin password reset successfully")
+        # except Exception as e:
+        #     db.session.rollback()
+        #     logger.error(f"Error resetting admin password: {str(e)}")
 
 app = create_app()
 
