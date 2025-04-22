@@ -486,7 +486,12 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <p>Send reminder emails to employees who haven't submitted their reports this week.</p>
+                <p>Send reminders to employees who haven't submitted their reports this week.</p>
+                
+                <div class="alert alert-info" role="alert">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Dual Notification:</strong> Reminders will be sent via both Email and Slack if available.
+                </div>
                 
                 {% if missing_reports > 0 %}
                 <div class="alert alert-danger" role="alert">
@@ -502,21 +507,43 @@
                 
                 <form id="reminderForm" action="{{ url_for('admin.send_reminders') }}" method="POST">
                     <div class="mb-3">
-                        <label for="reminderSubject" class="form-label">Email Subject</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-dark text-light border-secondary"><i class="fas fa-heading"></i></span>
-                            <input type="text" class="form-control bg-dark text-light border-secondary" id="reminderSubject" name="subject" value="[REMINDER] Weekly Status Report Due">
+                        <div class="card bg-dark border-secondary">
+                            <div class="card-header bg-dark border-bottom border-secondary">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-envelope text-primary me-2"></i> Email Settings
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="reminderSubject" class="form-label">Email Subject</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-dark text-light border-secondary"><i class="fas fa-heading"></i></span>
+                                        <input type="text" class="form-control bg-dark text-light border-secondary" id="reminderSubject" name="subject" value="[REMINDER] Weekly Status Report Due">
+                                    </div>
+                                    <div class="form-text text-muted">Subject line for the reminder email</div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="form-text text-muted">Subject line for the reminder email</div>
                     </div>
                     
                     <div class="mb-3">
-                        <label for="reminderMessage" class="form-label">Additional Message (Optional)</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-dark text-light border-secondary"><i class="fas fa-comment-alt"></i></span>
-                            <textarea class="form-control bg-dark text-light border-secondary" id="reminderMessage" name="message" rows="4" placeholder="Enter any additional information for the reminder email..."></textarea>
+                        <div class="card bg-dark border-secondary">
+                            <div class="card-header bg-dark border-bottom border-secondary">
+                                <h6 class="mb-0">
+                                    <i class="fab fa-slack text-primary me-2"></i> Additional Message
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="reminderMessage" class="form-label">Additional Message (Optional)</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-dark text-light border-secondary"><i class="fas fa-comment-alt"></i></span>
+                                        <textarea class="form-control bg-dark text-light border-secondary" id="reminderMessage" name="message" rows="4" placeholder="Enter any additional information for the reminder messages..."></textarea>
+                                    </div>
+                                    <div class="form-text text-muted">This message will be included in both email and Slack reminders</div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="form-text text-muted">This message will be included in the reminder email</div>
                     </div>
                     
                     <div class="form-check mb-3">

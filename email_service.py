@@ -1,24 +1,21 @@
 import os
 import logging
 import smtplib
-from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from datetime import datetime, timezone
+from email.mime.text import MIMEText
 
+# Configure logging
 logger = logging.getLogger(__name__)
 
-# Default sender info - will be overridden if environment variables are set
-DEFAULT_SENDER_EMAIL = "noreply@sbscorp.example.com"
-DEFAULT_SENDER_NAME = "SBS Weekly Report System"
-
-# SMTP Settings - set these environment variables to enable email
+# Email configuration from environment variables
 SMTP_SERVER = os.environ.get('SMTP_SERVER')
 SMTP_PORT = int(os.environ.get('SMTP_PORT', 587))
 SMTP_USERNAME = os.environ.get('SMTP_USERNAME')
 SMTP_PASSWORD = os.environ.get('SMTP_PASSWORD')
-SMTP_USE_TLS = os.environ.get('SMTP_USE_TLS', 'True').lower() == 'true'
-SENDER_EMAIL = os.environ.get('SENDER_EMAIL', DEFAULT_SENDER_EMAIL)
-SENDER_NAME = os.environ.get('SENDER_NAME', DEFAULT_SENDER_NAME)
+SMTP_USE_TLS = os.environ.get('SMTP_USE_TLS', 'True').lower() in ('true', '1', 't')
+SENDER_NAME = os.environ.get('SENDER_NAME', 'SBS Corp Weekly Status Report System')
+SENDER_EMAIL = os.environ.get('SENDER_EMAIL', 'noreply@sbscorp.com')
+
 
 def send_email(to_email, subject, html_content=None, text_content=None):
     """
@@ -80,6 +77,7 @@ def send_email(to_email, subject, html_content=None, text_content=None):
         logger.error(f"Failed to send email to {to_email}: {str(e)}")
         return False
 
+
 def send_reminder_email(to_email, employee_name, due_date_str=None):
     """
     Send a reminder email to an employee who missed their weekly report submission.
@@ -92,117 +90,34 @@ def send_reminder_email(to_email, employee_name, due_date_str=None):
     Returns:
         bool: True if the email was sent successfully, False otherwise
     """
-    # If due date not provided, use next Monday
-    if not due_date_str:
-        now = datetime.now(timezone.utc)
-        days_until_monday = (7 - now.weekday()) % 7
-        if days_until_monday == 0:
-            days_until_monday = 7
-        next_monday = now.replace(hour=9, minute=0, second=0, microsecond=0)
-        next_monday = next_monday.replace(day=next_monday.day + days_until_monday)
-        due_date_str = next_monday.strftime("%A, %B %d, %Y at %I:%M %p")
+    # If due date not provided, use a generic message
+    due_date_text = f"by <strong>{due_date_str}</strong>" if due_date_str else "soon"
     
-    subject = "⚠️ Weekly Status Report Reminder"
+    subject = "[REMINDER] Weekly Status Report Due"
     
     html_content = f"""
     <html>
-    <head>
-        <style>
-            body {{
-                font-family: Arial, sans-serif;
-                line-height: 1.6;
-                color: #333;
-            }}
-            .container {{
-                max-width: 600px;
-                margin: 0 auto;
-                padding: 20px;
-            }}
-            .header {{
-                background-color: #2a5885;
-                color: white;
-                padding: 10px 20px;
-                border-radius: 5px 5px 0 0;
-            }}
-            .content {{
-                background-color: #f9f9f9;
-                padding: 20px;
-                border-radius: 0 0 5px 5px;
-                border: 1px solid #ddd;
-                border-top: none;
-            }}
-            .highlight {{
-                color: #d9534f;
-                font-weight: bold;
-            }}
-            .button {{
-                display: inline-block;
-                padding: 10px 20px;
-                background-color: #2a5885;
-                color: white;
-                text-decoration: none;
-                border-radius: 5px;
-                margin-top: 20px;
-            }}
-            .footer {{
-                margin-top: 20px;
-                font-size: 12px;
-                color: #777;
-                text-align: center;
-            }}
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <div class="header">
-                <h2>Weekly Status Report Reminder</h2>
-            </div>
-            <div class="content">
-                <p>Hello {employee_name},</p>
-                
-                <p>This is a friendly reminder that your <span class="highlight">weekly status report</span> is due. Please submit your report as soon as possible.</p>
-                
-                <p><strong>Due Date:</strong> {due_date_str}</p>
-                
-                <p>Submitting your weekly report on time helps management track project progress and address any potential issues promptly. Your cooperation is highly appreciated.</p>
-                
-                <p>If you've already submitted your report, please disregard this message.</p>
-                
-                <a href="https://report.sbscorp.example.com" class="button">Submit Your Report</a>
-                
-                <p>Thank you for your attention to this matter.</p>
-                
-                <p>Best regards,<br>SBS Corp Management</p>
-            </div>
-            <div class="footer">
-                <p>This is an automated message from the SBS Weekly Report System. Please do not reply to this email.</p>
-            </div>
+    <body style="font-family: Arial, Helvetica, sans-serif; line-height: 1.6; color: #333;">
+        <div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 5px; background-color: #f9f9f9;">
+            <h2 style="color: #d9534f; border-bottom: 1px solid #eee; padding-bottom: 10px;">Weekly Report Reminder</h2>
+            
+            <p>Hello {employee_name},</p>
+            
+            <p>This is a friendly reminder that your weekly status report is due {due_date_text}.</p>
+            
+            <p>Please login to the SBS Corp Weekly Status Report System to submit your report.</p>
+            
+            <p style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #eee;">
+                Thank you,<br>
+                <strong>SBS Corp Admin Team</strong>
+            </p>
         </div>
     </body>
     </html>
     """
     
-    text_content = f"""
-Hello {employee_name},
+    return send_email(to_email, subject, html_content)
 
-This is a friendly reminder that your weekly status report is due. Please submit your report as soon as possible.
-
-Due Date: {due_date_str}
-
-Submitting your weekly report on time helps management track project progress and address any potential issues promptly. Your cooperation is highly appreciated.
-
-If you've already submitted your report, please disregard this message.
-
-Thank you for your attention to this matter.
-
-Best regards,
-SBS Corp Management
-
---
-This is an automated message from the SBS Weekly Report System. Please do not reply to this email.
-    """
-    
-    return send_email(to_email, subject, html_content, text_content)
 
 def send_report_approved_email(to_email, employee_name, report_date, feedback=None):
     """
@@ -217,100 +132,41 @@ def send_report_approved_email(to_email, employee_name, report_date, feedback=No
     Returns:
         bool: True if the email was sent successfully, False otherwise
     """
-    subject = "✅ Weekly Status Report Approved"
+    subject = "Weekly Report Approved"
     
-    # Prepare feedback HTML content
-    feedback_div = ""
+    # Format feedback section
+    feedback_section = ""
     if feedback:
-        feedback_div = f'<div class="feedback"><p><strong>Feedback:</strong></p><p>{feedback}</p></div>'
-    
-    # Prepare feedback text content
-    feedback_text = ""
-    if feedback:
-        feedback_text = f"Feedback:\n{feedback}\n"
+        feedback_section = f"""
+        <div style="margin: 15px 0; padding: 10px; border-left: 4px solid #5cb85c; background-color: #f9f9f9;">
+            <h3 style="margin-top: 0; color: #5cb85c;">Feedback from Admin:</h3>
+            <p>{feedback}</p>
+        </div>
+        """
     
     html_content = f"""
     <html>
-    <head>
-        <style>
-            body {{
-                font-family: Arial, sans-serif;
-                line-height: 1.6;
-                color: #333;
-            }}
-            .container {{
-                max-width: 600px;
-                margin: 0 auto;
-                padding: 20px;
-            }}
-            .header {{
-                background-color: #5cb85c;
-                color: white;
-                padding: 10px 20px;
-                border-radius: 5px 5px 0 0;
-            }}
-            .content {{
-                background-color: #f9f9f9;
-                padding: 20px;
-                border-radius: 0 0 5px 5px;
-                border: 1px solid #ddd;
-                border-top: none;
-            }}
-            .feedback {{
-                background-color: #f5f5f5;
-                padding: 15px;
-                border-left: 4px solid #5cb85c;
-                margin: 15px 0;
-            }}
-            .footer {{
-                margin-top: 20px;
-                font-size: 12px;
-                color: #777;
-                text-align: center;
-            }}
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <div class="header">
-                <h2>Weekly Status Report Approved</h2>
-            </div>
-            <div class="content">
-                <p>Hello {employee_name},</p>
-                
-                <p>Your weekly status report for the period ending <strong>{report_date}</strong> has been <strong style="color: #5cb85c;">approved</strong>.</p>
-                
-                {feedback_div}
-                
-                <p>Thank you for your timely submission and thorough reporting.</p>
-                
-                <p>Best regards,<br>SBS Corp Management</p>
-            </div>
-            <div class="footer">
-                <p>This is an automated message from the SBS Weekly Report System. Please do not reply to this email.</p>
-            </div>
+    <body style="font-family: Arial, Helvetica, sans-serif; line-height: 1.6; color: #333;">
+        <div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 5px; background-color: #f9f9f9;">
+            <h2 style="color: #5cb85c; border-bottom: 1px solid #eee; padding-bottom: 10px;">Weekly Report Approved ✓</h2>
+            
+            <p>Hello {employee_name},</p>
+            
+            <p>Your weekly status report submitted on <strong>{report_date}</strong> has been <strong style="color: #5cb85c;">approved</strong>.</p>
+            
+            {feedback_section}
+            
+            <p style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #eee;">
+                Thank you,<br>
+                <strong>SBS Corp Admin Team</strong>
+            </p>
         </div>
     </body>
     </html>
     """
     
-    text_content = f"""
-Hello {employee_name},
+    return send_email(to_email, subject, html_content)
 
-Your weekly status report for the period ending {report_date} has been approved.
-
-{feedback_text}
-
-Thank you for your timely submission and thorough reporting.
-
-Best regards,
-SBS Corp Management
-
---
-This is an automated message from the SBS Weekly Report System. Please do not reply to this email.
-    """
-    
-    return send_email(to_email, subject, html_content, text_content)
 
 def send_report_rejected_email(to_email, employee_name, report_date, feedback=None):
     """
@@ -325,115 +181,50 @@ def send_report_rejected_email(to_email, employee_name, report_date, feedback=No
     Returns:
         bool: True if the email was sent successfully, False otherwise
     """
-    subject = "❌ Weekly Status Report Requires Revision"
+    subject = "Weekly Report Requires Revision"
     
-    # Prepare feedback HTML content
-    feedback_div = ""
+    # Format feedback section
+    feedback_section = ""
     if feedback:
-        feedback_div = f'<div class="feedback"><p><strong>Feedback:</strong></p><p>{feedback}</p></div>'
-    
-    # Prepare feedback text content
-    feedback_text = ""
-    if feedback:
-        feedback_text = f"Feedback:\n{feedback}\n"
+        feedback_section = f"""
+        <div style="margin: 15px 0; padding: 10px; border-left: 4px solid #d9534f; background-color: #f9f9f9;">
+            <h3 style="margin-top: 0; color: #d9534f;">Feedback from Admin:</h3>
+            <p>{feedback}</p>
+        </div>
+        """
+    else:
+        feedback_section = """
+        <div style="margin: 15px 0; padding: 10px; border-left: 4px solid #d9534f; background-color: #f9f9f9;">
+            <h3 style="margin-top: 0; color: #d9534f;">Feedback from Admin:</h3>
+            <p>No specific feedback was provided. Please contact your administrator for more details.</p>
+        </div>
+        """
     
     html_content = f"""
     <html>
-    <head>
-        <style>
-            body {{
-                font-family: Arial, sans-serif;
-                line-height: 1.6;
-                color: #333;
-            }}
-            .container {{
-                max-width: 600px;
-                margin: 0 auto;
-                padding: 20px;
-            }}
-            .header {{
-                background-color: #d9534f;
-                color: white;
-                padding: 10px 20px;
-                border-radius: 5px 5px 0 0;
-            }}
-            .content {{
-                background-color: #f9f9f9;
-                padding: 20px;
-                border-radius: 0 0 5px 5px;
-                border: 1px solid #ddd;
-                border-top: none;
-            }}
-            .feedback {{
-                background-color: #f5f5f5;
-                padding: 15px;
-                border-left: 4px solid #d9534f;
-                margin: 15px 0;
-            }}
-            .button {{
-                display: inline-block;
-                padding: 10px 20px;
-                background-color: #2a5885;
-                color: white;
-                text-decoration: none;
-                border-radius: 5px;
-                margin-top: 20px;
-            }}
-            .footer {{
-                margin-top: 20px;
-                font-size: 12px;
-                color: #777;
-                text-align: center;
-            }}
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <div class="header">
-                <h2>Weekly Status Report Requires Revision</h2>
-            </div>
-            <div class="content">
-                <p>Hello {employee_name},</p>
-                
-                <p>Your weekly status report for the period ending <strong>{report_date}</strong> requires revision.</p>
-                
-                {feedback_div}
-                
-                <p>Please review the feedback and submit a revised report at your earliest convenience.</p>
-                
-                <a href="https://report.sbscorp.example.com" class="button">Submit Revised Report</a>
-                
-                <p>If you have any questions, please contact your manager.</p>
-                
-                <p>Best regards,<br>SBS Corp Management</p>
-            </div>
-            <div class="footer">
-                <p>This is an automated message from the SBS Weekly Report System. Please do not reply to this email.</p>
-            </div>
+    <body style="font-family: Arial, Helvetica, sans-serif; line-height: 1.6; color: #333;">
+        <div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 5px; background-color: #f9f9f9;">
+            <h2 style="color: #d9534f; border-bottom: 1px solid #eee; padding-bottom: 10px;">Weekly Report Requires Revision</h2>
+            
+            <p>Hello {employee_name},</p>
+            
+            <p>Your weekly status report submitted on <strong>{report_date}</strong> has been <strong style="color: #d9534f;">rejected</strong> and requires revision.</p>
+            
+            {feedback_section}
+            
+            <p>Please log in to the system, review the feedback, and submit a revised report as soon as possible.</p>
+            
+            <p style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #eee;">
+                Thank you,<br>
+                <strong>SBS Corp Admin Team</strong>
+            </p>
         </div>
     </body>
     </html>
     """
     
-    text_content = f"""
-Hello {employee_name},
+    return send_email(to_email, subject, html_content)
 
-Your weekly status report for the period ending {report_date} requires revision.
-
-{feedback_text}
-
-Please review the feedback and submit a revised report at your earliest convenience.
-
-If you have any questions, please contact your manager.
-
-Best regards,
-SBS Corp Management
-
---
-This is an automated message from the SBS Weekly Report System. Please do not reply to this email.
-    """
-    
-    return send_email(to_email, subject, html_content, text_content)
 
 def send_welcome_email(to_email, employee_name, password=None):
     """
@@ -447,131 +238,51 @@ def send_welcome_email(to_email, employee_name, password=None):
     Returns:
         bool: True if the email was sent successfully, False otherwise
     """
-    subject = "🎉 Welcome to SBS Corp Weekly Reporting System"
+    subject = "Welcome to SBS Corp Weekly Status Report System"
     
+    # Format password section if provided
     password_section = ""
     if password:
         password_section = f"""
-        <p>Your initial password is: <strong>{password}</strong></p>
+        <p><strong>Your login details:</strong></p>
+        <ul style="margin: 10px 0; padding: 10px; background-color: #f0f0f0; border-radius: 5px;">
+            <li><strong>Email:</strong> {to_email}</li>
+            <li><strong>Initial Password:</strong> {password}</li>
+        </ul>
         <p>For security reasons, please change your password after your first login.</p>
         """
     
     html_content = f"""
     <html>
-    <head>
-        <style>
-            body {{
-                font-family: Arial, sans-serif;
-                line-height: 1.6;
-                color: #333;
-            }}
-            .container {{
-                max-width: 600px;
-                margin: 0 auto;
-                padding: 20px;
-            }}
-            .header {{
-                background-color: #2a5885;
-                color: white;
-                padding: 10px 20px;
-                border-radius: 5px 5px 0 0;
-            }}
-            .content {{
-                background-color: #f9f9f9;
-                padding: 20px;
-                border-radius: 0 0 5px 5px;
-                border: 1px solid #ddd;
-                border-top: none;
-            }}
-            .info-box {{
-                background-color: #f5f5f5;
-                padding: 15px;
-                border-left: 4px solid #2a5885;
-                margin: 15px 0;
-            }}
-            .button {{
-                display: inline-block;
-                padding: 10px 20px;
-                background-color: #2a5885;
-                color: white;
-                text-decoration: none;
-                border-radius: 5px;
-                margin-top: 20px;
-            }}
-            .footer {{
-                margin-top: 20px;
-                font-size: 12px;
-                color: #777;
-                text-align: center;
-            }}
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <div class="header">
-                <h2>Welcome to SBS Corp Weekly Reporting System</h2>
-            </div>
-            <div class="content">
-                <p>Hello {employee_name},</p>
-                
-                <p>Welcome to the SBS Corp Weekly Reporting System. Your account has been created and you can now start submitting your weekly status reports.</p>
-                
-                <div class="info-box">
-                    <p><strong>Your login information:</strong></p>
-                    <p>Email: <strong>{to_email}</strong></p>
-                    {password_section}
-                </div>
-                
-                <p><strong>Important information:</strong></p>
-                <ul>
-                    <li>Weekly reports are due every Monday by 9:00 AM.</li>
-                    <li>You will receive automated reminders if a report is not submitted on time.</li>
-                    <li>Please use the provided templates for your reports.</li>
-                </ul>
-                
-                <a href="https://report.sbscorp.example.com" class="button">Access Reporting System</a>
-                
-                <p>If you need any assistance, please contact your manager or the IT department.</p>
-                
-                <p>Best regards,<br>SBS Corp Management</p>
-            </div>
-            <div class="footer">
-                <p>This is an automated message from the SBS Weekly Report System. Please do not reply to this email.</p>
-            </div>
+    <body style="font-family: Arial, Helvetica, sans-serif; line-height: 1.6; color: #333;">
+        <div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 5px; background-color: #f9f9f9;">
+            <h2 style="color: #337ab7; border-bottom: 1px solid #eee; padding-bottom: 10px;">Welcome to SBS Corp!</h2>
+            
+            <p>Hello {employee_name},</p>
+            
+            <p>An account has been created for you on the SBS Corp Weekly Status Report System.</p>
+            
+            {password_section}
+            
+            <h3 style="color: #5cb85c; margin-top: 20px;">What's Next?</h3>
+            
+            <ol>
+                <li>Login to the system using your credentials</li>
+                <li>Submit your weekly status report by the end of each week</li>
+                <li>Check for any feedback or notifications from administrators</li>
+            </ol>
+            
+            <p style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #eee;">
+                Thank you,<br>
+                <strong>SBS Corp Admin Team</strong>
+            </p>
         </div>
     </body>
     </html>
     """
     
-    # Prepare password text
-    password_text = ""
-    if password:
-        password_text = f"Password: {password}\n\nFor security reasons, please change your password after your first login."
-    
-    text_content = f"""
-Hello {employee_name},
+    return send_email(to_email, subject, html_content)
 
-Welcome to the SBS Corp Weekly Reporting System. Your account has been created and you can now start submitting your weekly status reports.
-
-Your login information:
-Email: {to_email}
-{password_text}
-
-Important information:
-- Weekly reports are due every Monday by 9:00 AM.
-- You will receive automated reminders if a report is not submitted on time.
-- Please use the provided templates for your reports.
-
-If you need any assistance, please contact your manager or the IT department.
-
-Best regards,
-SBS Corp Management
-
---
-This is an automated message from the SBS Weekly Report System. Please do not reply to this email.
-    """
-    
-    return send_email(to_email, subject, html_content, text_content)
 
 def is_email_configured():
     """

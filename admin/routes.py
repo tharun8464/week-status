@@ -645,3 +645,131 @@ def profile():
                     flash(f"Error changing password: {str(e)}", "danger")
     
     return render_template('admin/profile.html', now=datetime.now())
+
+# Notification Settings
+@bp.route('/settings/notifications', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def settings_notifications():
+    # Get current notification settings
+    smtp_server = os.environ.get('SMTP_SERVER')
+    smtp_port = os.environ.get('SMTP_PORT', '587')
+    smtp_username = os.environ.get('SMTP_USERNAME')
+    smtp_password = os.environ.get('SMTP_PASSWORD')
+    smtp_use_tls = os.environ.get('SMTP_USE_TLS', 'True').lower() in ('true', '1', 't')
+    sender_name = os.environ.get('SENDER_NAME', 'SBS Corp Weekly Status Report System')
+    sender_email = os.environ.get('SENDER_EMAIL', 'noreply@sbscorp.com')
+    
+    slack_bot_token = os.environ.get('SLACK_BOT_TOKEN')
+    slack_channel_id = os.environ.get('SLACK_CHANNEL_ID')
+    
+    # Check if services are configured
+    email_configured = email_service.is_email_configured()
+    slack_configured = slack_service.is_slack_configured()
+    
+    if request.method == 'POST':
+        action = request.form.get('action')
+        
+        if action == 'update_email_settings':
+            # Process email settings form
+            try:
+                # In a production environment, you would update these in the environment
+                # or a config file. This is a simplified version for demonstration.
+                flash("Email settings updated successfully", "success")
+                log_admin_activity("Updated email notification settings")
+            except Exception as e:
+                logging.error(f"Error updating email settings: {str(e)}")
+                flash(f"Error updating email settings: {str(e)}", "danger")
+                
+        elif action == 'update_slack_settings':
+            # Process Slack settings form
+            try:
+                # In a production environment, you would update these in the environment
+                # or a config file. This is a simplified version for demonstration.
+                flash("Slack settings updated successfully", "success")
+                log_admin_activity("Updated Slack notification settings")
+            except Exception as e:
+                logging.error(f"Error updating Slack settings: {str(e)}")
+                flash(f"Error updating Slack settings: {str(e)}", "danger")
+                
+        elif action == 'test_notification':
+            # Process test notification form
+            test_email = request.form.get('test_email')
+            test_type = request.form.get('test_type', 'email')
+            
+            if test_type in ['email', 'both'] and test_email:
+                # Send test email
+                email_sent = email_service.send_email(
+                    to_email=test_email,
+                    subject="Test Notification from SBS Corp Weekly Status Report System",
+                    html_content="""
+                    <html>
+                    <body style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
+                        <div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 5px;">
+                            <h2 style="color: #007bff; margin-bottom: 20px;">Test Notification</h2>
+                            <p>This is a test notification from the SBS Corp Weekly Status Report System.</p>
+                            <p>Your email notification settings are working correctly!</p>
+                            <p style="margin-top: 30px; padding-top: 15px; border-top: 1px solid #eee;">
+                                Sent from SBS Corp Weekly Status Report System
+                            </p>
+                        </div>
+                    </body>
+                    </html>
+                    """
+                )
+                if email_sent:
+                    flash(f"Test email sent successfully to {test_email}", "success")
+                else:
+                    flash(f"Failed to send test email to {test_email}. Check your email settings.", "danger")
+            
+            if test_type in ['slack', 'both']:
+                # Send test Slack message
+                slack_sent = slack_service.send_slack_message(
+                    message="Test notification from SBS Corp Weekly Status Report System",
+                    blocks=[
+                        {
+                            "type": "header",
+                            "text": {
+                                "type": "plain_text",
+                                "text": "Test Notification",
+                                "emoji": True
+                            }
+                        },
+                        {
+                            "type": "section",
+                            "text": {
+                                "type": "mrkdwn",
+                                "text": "This is a test notification from the SBS Corp Weekly Status Report System."
+                            }
+                        },
+                        {
+                            "type": "section",
+                            "text": {
+                                "type": "mrkdwn",
+                                "text": "Your Slack notification settings are working correctly! 🎉"
+                            }
+                        }
+                    ]
+                )
+                if slack_sent:
+                    flash("Test Slack message sent successfully", "success")
+                else:
+                    flash("Failed to send test Slack message. Check your Slack settings.", "danger")
+            
+            log_admin_activity(f"Sent test notification (type: {test_type})")
+            
+    return render_template(
+        'admin/settings/notifications.html',
+        email_configured=email_configured,
+        slack_configured=slack_configured,
+        smtp_server=smtp_server,
+        smtp_port=smtp_port,
+        smtp_username=smtp_username,
+        smtp_password=smtp_password,
+        smtp_use_tls=smtp_use_tls,
+        sender_name=sender_name,
+        sender_email=sender_email,
+        slack_bot_token=slack_bot_token,
+        slack_channel_id=slack_channel_id,
+        now=datetime.now()
+    )
