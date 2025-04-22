@@ -518,7 +518,7 @@
                                     <label for="reminderSubject" class="form-label">Email Subject</label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-dark text-light border-secondary"><i class="fas fa-heading"></i></span>
-                                        <input type="text" class="form-control bg-dark text-light border-secondary" id="reminderSubject" name="subject" value="[REMINDER] Weekly Status Report Due">
+                                        <input type="text" class="form-control bg-dark text-light border-secondary" id="reminderSubject" name="subject" value="[REMINDER] Weekly Status Report for Week {{ (now.isocalendar()[1]) }}, {{ now.year }} Due">
                                     </div>
                                     <div class="form-text text-muted">Subject line for the reminder email</div>
                                 </div>
@@ -628,7 +628,9 @@ document.addEventListener('DOMContentLoaded', function() {
             if (this.checked) {
                 reminderSubject.value = '[NOTIFICATION] Weekly Status Report System';
             } else {
-                reminderSubject.value = '[REMINDER] Weekly Status Report Due';
+                const currentWeek = {{ now.isocalendar()[1] }};
+                const currentYear = {{ now.year }};
+                reminderSubject.value = `[REMINDER] Weekly Status Report for Week ${currentWeek}, ${currentYear} Due`;
             }
         });
     }
@@ -643,6 +645,19 @@ document.addEventListener('DOMContentLoaded', function() {
             // Reset form when modal is closed
             if (reminderForm) {
                 reminderForm.reset();
+            }
+        });
+    }
+    
+    // Auto-close modal after form submission
+    if (reminderForm) {
+        reminderForm.addEventListener('submit', function(e) {
+            // Close the modal automatically
+            const modal = bootstrap.Modal.getInstance(reminderModal);
+            if (modal) {
+                setTimeout(function() {
+                    modal.hide();
+                }, 100);
             }
         });
     }
