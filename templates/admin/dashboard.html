@@ -212,6 +212,73 @@
     </div>
 </div>
 
+<!-- Team Performance Visualization -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card bg-dark border-0 shadow-sm">
+            <div class="card-header bg-dark border-bottom border-secondary d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">
+                    <i class="fas fa-chart-line text-primary me-2"></i> Team Performance Visualization
+                </h4>
+                <div>
+                    <select id="performanceTimeRange" class="form-select form-select-sm bg-dark text-light border-secondary">
+                        <option value="4">Last 4 Weeks</option>
+                        <option value="8" selected>Last 8 Weeks</option>
+                        <option value="12">Last 12 Weeks</option>
+                    </select>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="mb-4">
+                    <div class="d-flex justify-content-end mb-3">
+                        <div class="d-flex align-items-center me-3">
+                            <div class="color-legend bg-success rounded me-2" style="width: 15px; height: 15px;"></div>
+                            <small class="text-muted">On Time</small>
+                        </div>
+                        <div class="d-flex align-items-center me-3">
+                            <div class="color-legend bg-warning rounded me-2" style="width: 15px; height: 15px;"></div>
+                            <small class="text-muted">Late</small>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <div class="color-legend bg-danger rounded me-2" style="width: 15px; height: 15px;"></div>
+                            <small class="text-muted">Missing</small>
+                        </div>
+                    </div>
+                    
+                    <div id="teamPerformanceChart" style="height: 380px;">
+                        <!-- Chart will be rendered here -->
+                    </div>
+                </div>
+                
+                <div class="card bg-dark border border-secondary">
+                    <div class="card-header bg-dark border-bottom border-secondary">
+                        <h5 class="mb-0">
+                            <i class="fas fa-users text-primary me-2"></i> Individual Performance
+                        </h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-dark table-hover align-middle mb-0" id="employeePerformanceTable">
+                                <thead>
+                                    <tr>
+                                        <th>Employee</th>
+                                        <th class="text-center">Last 8 Weeks</th>
+                                        <th class="text-center">On-Time %</th>
+                                        <th class="text-center">Trend</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- This will be populated with JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Recent Activity and Reports -->
 <div class="row">
     <!-- Recent Reports -->
