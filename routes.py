@@ -7,6 +7,7 @@ from datetime import datetime, timedelta, date
 import uuid
 from flask import Blueprint, render_template, redirect, url_for, request, flash, session
 from flask_login import login_user, logout_user, login_required, current_user
+from werkzeug.security import check_password_hash, generate_password_hash
 from models import db, User, Report
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
@@ -237,8 +238,8 @@ def login():
             flash("Email not registered", "danger")
             return redirect(url_for('main.index'))
         
-        # Check password
-        if user.password == password:
+        # Check password - handle both hashed and plain text passwords for backward compatibility
+        if check_password_hash(user.password, password) if user.password.startswith('pbkdf2:sha256:') else user.password == password:
             # Use Flask-Login to login the user
             login_user(user)
             
@@ -345,6 +346,9 @@ def dashboard():
 
 @bp.route('/logout')
 def logout():
+    # Log out user with Flask-Login
+    logout_user()
+    # Also clear session for backward compatibility
     session.clear()
     flash("You have been logged out", "info")
     return redirect(url_for('main.index'))
