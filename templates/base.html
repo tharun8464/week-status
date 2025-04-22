@@ -67,7 +67,7 @@
                 {% if messages %}
                     {% for category, message in messages %}
                         {% set category_class = "success" if category == "message" else category %}
-                        <div class="alert alert-{{ category_class }} alert-dismissible fade show custom-alert" role="alert">
+                        <div class="alert alert-{{ category_class }} alert-dismissible fade show custom-alert rounded-0" role="alert">
                             {% if category_class == "success" %}
                                 <i class="fas fa-check-circle me-2"></i>
                             {% elif category_class == "danger" %}
