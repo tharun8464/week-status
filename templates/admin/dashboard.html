@@ -106,7 +106,7 @@
                     </div>
                 </div>
                 <div class="mt-3">
-                    <button class="btn btn-sm btn-outline-light w-100" data-bs-toggle="modal" data-bs-target="#sendReminderModal">
+                    <button class="btn btn-sm btn-outline-danger w-100" data-bs-toggle="modal" data-bs-target="#sendReminderModal">
                         <i class="fas fa-envelope me-1"></i> Send Reminders
                     </button>
                 </div>
@@ -488,25 +488,53 @@
             <div class="modal-body">
                 <p>Send reminder emails to employees who haven't submitted their reports this week.</p>
                 
-                <div class="alert alert-info" role="alert">
-                    <i class="fas fa-info-circle me-2"></i>
-                    {{ missing_reports }} employees haven't submitted their weekly reports.
+                {% if missing_reports > 0 %}
+                <div class="alert alert-danger" role="alert">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    <strong>{{ missing_reports }} employee{% if missing_reports > 1 %}s{% endif %}</strong> haven't submitted their weekly reports yet.
                 </div>
+                {% else %}
+                <div class="alert alert-success" role="alert">
+                    <i class="fas fa-check-circle me-2"></i>
+                    All employees have submitted their weekly reports. No reminders needed.
+                </div>
+                {% endif %}
                 
                 <form id="reminderForm" action="{{ url_for('admin.send_reminders') }}" method="POST">
                     <div class="mb-3">
                         <label for="reminderSubject" class="form-label">Email Subject</label>
-                        <input type="text" class="form-control bg-dark text-light border-secondary" id="reminderSubject" name="subject" value="[REMINDER] Weekly Status Report Due">
+                        <div class="input-group">
+                            <span class="input-group-text bg-dark text-light border-secondary"><i class="fas fa-heading"></i></span>
+                            <input type="text" class="form-control bg-dark text-light border-secondary" id="reminderSubject" name="subject" value="[REMINDER] Weekly Status Report Due">
+                        </div>
+                        <div class="form-text text-muted">Subject line for the reminder email</div>
                     </div>
+                    
                     <div class="mb-3">
                         <label for="reminderMessage" class="form-label">Additional Message (Optional)</label>
-                        <textarea class="form-control bg-dark text-light border-secondary" id="reminderMessage" name="message" rows="3" placeholder="Enter any additional information for the reminder email..."></textarea>
+                        <div class="input-group">
+                            <span class="input-group-text bg-dark text-light border-secondary"><i class="fas fa-comment-alt"></i></span>
+                            <textarea class="form-control bg-dark text-light border-secondary" id="reminderMessage" name="message" rows="4" placeholder="Enter any additional information for the reminder email..."></textarea>
+                        </div>
+                        <div class="form-text text-muted">This message will be included in the reminder email</div>
+                    </div>
+                    
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="sendToAll" name="send_to_all">
+                        <label class="form-check-label" for="sendToAll">
+                            Send to all employees (including those who have already submitted)
+                        </label>
+                    </div>
+                    
+                    <div class="alert alert-secondary bg-dark border-secondary" role="alert">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Reminders will be sent to employee email addresses on file.
                     </div>
                 </form>
             </div>
             <div class="modal-footer border-top border-secondary">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="submit" form="reminderForm" class="btn btn-info">
+                <button type="submit" form="reminderForm" class="btn btn-danger" {% if missing_reports == 0 %}disabled{% endif %}>
                     <i class="fas fa-paper-plane me-1"></i> Send Reminders
                 </button>
             </div>
@@ -561,6 +589,36 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 300 + (index * 100));
         }
     });
+    
+    // Enhanced email reminder modal functionality
+    const sendToAllCheckbox = document.getElementById('sendToAll');
+    const reminderForm = document.getElementById('reminderForm');
+    const reminderSubject = document.getElementById('reminderSubject');
+    const reminderMessage = document.getElementById('reminderMessage');
+    
+    if (sendToAllCheckbox) {
+        sendToAllCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                reminderSubject.value = '[NOTIFICATION] Weekly Status Report System';
+            } else {
+                reminderSubject.value = '[REMINDER] Weekly Status Report Due';
+            }
+        });
+    }
+    
+    const reminderModal = document.getElementById('sendReminderModal');
+    if (reminderModal) {
+        reminderModal.addEventListener('shown.bs.modal', function () {
+            reminderSubject.focus();
+        });
+        
+        reminderModal.addEventListener('hidden.bs.modal', function () {
+            // Reset form when modal is closed
+            if (reminderForm) {
+                reminderForm.reset();
+            }
+        });
+    }
 });
 </script>
 {% endblock %}

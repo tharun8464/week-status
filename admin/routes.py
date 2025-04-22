@@ -518,27 +518,62 @@ def send_reminders():
     ).distinct().all()
     submitted_ids = [item[0] for item in employees_submitted]
     
-    missing_employees = [emp for emp in all_employees if emp.id not in submitted_ids]
+    # Determine which employees should receive reminders
+    send_to_all = request.form.get('send_to_all') == 'on'
+    if send_to_all:
+        # Send to all active employees
+        target_employees = all_employees
+    else:
+        # Send only to employees who haven't submitted reports
+        target_employees = [emp for emp in all_employees if emp.id not in submitted_ids]
     
     # Get email parameters
     subject = request.form.get('subject', '[REMINDER] Weekly Status Report Due')
     additional_message = request.form.get('message', '')
     
-    # Send emails to employees who haven't submitted
+    # Format additional message if provided
+    formatted_additional_message = ""
+    if additional_message and additional_message.strip():
+        # Convert newlines to <br> first, before creating the f-string
+        message_with_breaks = additional_message.strip().replace('\n', '<br>')
+        formatted_additional_message = f"""
+        <p style="margin-top: 15px; margin-bottom: 15px; padding: 10px; border-left: 4px solid #007bff; background-color: #f8f9fa;">
+            {message_with_breaks}
+        </p>
+        """
+    
+    # Send emails to target employees
     count = 0
-    for employee in missing_employees:
+    for employee in target_employees:
         try:
+            # Check if this employee has submitted (for customized message)
+            has_submitted = employee.id in submitted_ids
+            status_message = ""
+            
+            if has_submitted:
+                status_message = "<p><strong>Note:</strong> Our records show you have already submitted your report for this week. This is just a courtesy reminder.</p>"
+            
             email_body = f"""
             <html>
-            <body>
-                <h2>Weekly Report Reminder</h2>
-                <p>Hello {employee.name},</p>
-                <p>This is a friendly reminder that your weekly status report is due.</p>
-                
-                {additional_message if additional_message else ''}
-                
-                <p>Please login at <a href="{request.host_url}">{request.host_url}</a> to submit your report.</p>
-                <p>Thank you,<br>SBS Corp Admin</p>
+            <body style="font-family: Arial, Helvetica, sans-serif; line-height: 1.6; color: #333;">
+                <div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 5px; background-color: #f9f9f9;">
+                    <h2 style="color: #d9534f; border-bottom: 1px solid #eee; padding-bottom: 10px;">Weekly Report Reminder</h2>
+                    
+                    <p>Hello {employee.name},</p>
+                    
+                    <p>This is a friendly reminder that your weekly status report is due.</p>
+                    
+                    {status_message}
+                    
+                    {formatted_additional_message}
+                    
+                    <p>Please login at <a href="{request.host_url}" style="color: #007bff; text-decoration: none; font-weight: bold;">{request.host_url}</a> to submit your report.</p>
+                    
+                    <p style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #eee;">
+                        Thank you,<br>
+                        <strong>SBS Corp Admin Team</strong>
+                    </p>
+                </div>
             </body>
             </html>
             """
@@ -547,7 +582,13 @@ def send_reminders():
         except Exception as e:
             logging.error(f"Error sending reminder to {employee.email}: {str(e)}")
     
-    log_admin_activity(f"Sent report reminders to {count} employees")
+    # Log the action
+    if send_to_all:
+        action_details = f"Sent report reminders to all {count} employees (including those who already submitted)"
+    else:
+        action_details = f"Sent report reminders to {count} employees who haven't submitted yet"
+    
+    log_admin_activity(action_details)
     
     flash(f"Reminders sent to {count} employees", "success")
     return redirect(url_for('admin.dashboard'))
