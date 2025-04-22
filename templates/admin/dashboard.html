@@ -393,7 +393,7 @@
                 
                 <div class="alert alert-info" role="alert">
                     <i class="fas fa-info-circle me-2"></i>
-                    {{ stats.missing_reports }} employees haven't submitted their weekly reports.
+                    {{ missing_reports }} employees haven't submitted their weekly reports.
                 </div>
                 
                 <form id="reminderForm" action="{{ url_for('admin.send_reminders') }}" method="POST">

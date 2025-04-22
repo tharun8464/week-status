@@ -408,6 +408,56 @@ def review_report(id):
     
     return render_template('admin/review_report.html', form=form, report=report, now=datetime.now())
 
+# Send reminders to employees
+@bp.route('/send-reminders', methods=['POST'])
+@login_required
+@admin_required
+def send_reminders():
+    # Get employees who haven't submitted this week
+    today = datetime.now()
+    start_of_week = today - timedelta(days=today.weekday())
+    start_of_week = datetime(start_of_week.year, start_of_week.month, start_of_week.day)
+    
+    all_employees = User.query.filter_by(role='employee', active=True).all()
+    employees_submitted = db.session.query(Report.employee_id).filter(
+        Report.submission_date >= start_of_week
+    ).distinct().all()
+    submitted_ids = [item[0] for item in employees_submitted]
+    
+    missing_employees = [emp for emp in all_employees if emp.id not in submitted_ids]
+    
+    # Get email parameters
+    subject = request.form.get('subject', '[REMINDER] Weekly Status Report Due')
+    additional_message = request.form.get('message', '')
+    
+    # Send emails to employees who haven't submitted
+    count = 0
+    for employee in missing_employees:
+        try:
+            email_body = f"""
+            <html>
+            <body>
+                <h2>Weekly Report Reminder</h2>
+                <p>Hello {employee.name},</p>
+                <p>This is a friendly reminder that your weekly status report is due.</p>
+                
+                {additional_message if additional_message else ''}
+                
+                <p>Please login at <a href="{request.host_url}">{request.host_url}</a> to submit your report.</p>
+                <p>Thank you,<br>SBS Corp Admin</p>
+            </body>
+            </html>
+            """
+            send_email(employee.email, subject, email_body)
+            count += 1
+        except Exception as e:
+            logging.error(f"Error sending reminder to {employee.email}: {str(e)}")
+    
+    log_admin_activity(f"Sent report reminders to {count} employees")
+    
+    flash(f"Reminders sent to {count} employees", "success")
+    return redirect(url_for('admin.dashboard'))
+
 # Activity logs
 @bp.route('/activity-logs')
 @login_required
