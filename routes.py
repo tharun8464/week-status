@@ -1,36 +1,21 @@
 import os
+import logging
 import msal
 import requests
 import calendar
-import logging
-import time
-import uuid
 from datetime import datetime, timedelta, date
-from threading import Thread
+import uuid
+from flask import Blueprint, render_template, redirect, url_for, request, flash, session
+from flask_login import login_user, logout_user, login_required, current_user
+from models import db, Employee, Report
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
-from flask import Flask, render_template, request, redirect, url_for, session, flash
-import schedule
-
-from models import db, Employee, Report
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
 
-# Create Flask app
-app = Flask(__name__)
-app.secret_key = os.environ.get("SESSION_SECRET", os.getenv('FLASK_SECRET_KEY', 'your-secret-key'))
-
-# Database configuration
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-
-# Initialize database
-db.init_app(app)
-
-# Create all tables
-with app.app_context():
-    db.create_all()
+# Create the Blueprint
+bp = Blueprint('main', __name__)
 
 # OneDrive API Configuration
 CLIENT_ID = os.getenv('CLIENT_ID', 'ea86ce4c-a4cc-430a-bc40-d788e4fa38d0')
@@ -115,25 +100,13 @@ def upload_to_onedrive(file, folder_id, filename):
     else:
         raise Exception(f"File upload failed: {response.status_code} - {response.text}")
 
-# Record report submission in database
-def record_submission(employee_id, filename):
-    with app.app_context():
-        new_report = Report(
-            employee_id=employee_id,
-            filename=filename,
-            submission_date=datetime.now()
-        )
-        db.session.add(new_report)
-        db.session.commit()
-        return new_report.id
-
 # Send Email Reminder using SendGrid
 def send_email(to_email, subject, body):
     sendgrid_key = os.environ.get('SENDGRID_API_KEY')
     sender = os.getenv('EMAIL_SENDER', 'noreply@sbscorp.com')
     
     if not sendgrid_key:
-        logging.warning("SendGrid API key not found - email sending skipped")
+        logging.warning("SendGrid API key not found. Email will not be sent.")
         return False
     
     message = Mail(
@@ -151,143 +124,52 @@ def send_email(to_email, subject, body):
         logging.error(f"Email sending failed: {str(e)}")
         return False
 
-# Schedule Weekly Reminders
-def schedule_reminders():
-    with app.app_context():
-        employees = Employee.query.all()
-        
-        now = datetime.now()
-        next_monday = now.date() + timedelta(days=(7 - now.date().weekday()) % 7)
-        current_date = now.strftime('%Y-%m-%d')
-        
-        for employee in employees:
-            # Check if employee has already submitted a report this week
-            week_start = (now.date() - timedelta(days=now.date().weekday())).strftime('%Y-%m-%d')
-            has_submitted = Report.query.filter(
-                Report.employee_id == str(employee.id),
-                Report.submission_date >= week_start
-            ).first() is not None
-            
-            # HTML email content
-            html_content = f"""
-            <html>
-            <head>
-                <style>
-                    body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
-                    .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
-                    .header {{ background-color: #2c3e50; color: white; padding: 20px; text-align: center; }}
-                    .content {{ padding: 20px; background-color: #f9f9f9; }}
-                    .footer {{ text-align: center; margin-top: 20px; color: #666; font-size: 12px; }}
-                    .button {{ display: inline-block; background-color: #3498db; color: white; padding: 10px 20px; 
-                            text-decoration: none; border-radius: 5px; margin-top: 20px; }}
-                    .warning {{ color: #e74c3c; }}
-                </style>
-            </head>
-            <body>
-                <div class="container">
-                    <div class="header">
-                        <h2>SBS Corp Weekly Status Report</h2>
-                    </div>
-                    <div class="content">
-                        <p>Hi {employee.name},</p>
-                        
-                        <p>This is a {'reminder' if not has_submitted else 'confirmation'} regarding your weekly status report.</p>
-                        
-                        {'<p><strong class="warning">You have not yet submitted your report for this week.</strong> Please submit it as soon as possible.</p>' 
-                        if not has_submitted else '<p>Thank you for submitting your report this week!</p>'}
-                        
-                        <p>Next report due date: <strong>{next_monday.strftime('%A, %B %d, %Y')} by 9:00 AM</strong></p>
-                        
-                        <p>Please log in to the Weekly Status Report Portal to {'upload' if not has_submitted else 'view'} your report.</p>
-                        
-                        <a href="https://weekly-status-report.replit.app" class="button">Access Portal</a>
-                    </div>
-                    <div class="footer">
-                        <p>This is an automated message from the SBS Corp Weekly Status Report system.</p>
-                        <p>&copy; {now.year} SBS Corp. All rights reserved.</p>
-                    </div>
-                </div>
-            </body>
-            </html>
-            """
-            
-            send_email(
-                employee.email,
-                f"Weekly Report {'Reminder' if not has_submitted else 'Confirmation'} - {current_date}",
-                html_content
-            )
-            logging.info(f"{'Reminder' if not has_submitted else 'Confirmation'} email sent to {employee.email}")
-
-# Set up the scheduler
-schedule.every().monday.at("09:00").do(schedule_reminders)
-
-def run_scheduler():
-    while True:
-        schedule.run_pending()
-        time.sleep(60)
-
-# Start scheduler in a separate thread
-scheduler_thread = Thread(target=run_scheduler, daemon=True)
-scheduler_thread.start()
-
-# Get recent submissions for an employee
-def get_recent_submissions(employee_id, limit=5):
-    with app.app_context():
-        recent_submissions = Report.query.filter_by(employee_id=employee_id).order_by(
-            Report.submission_date.desc()
-        ).limit(limit).all()
-        
-        return [{"id": str(submission.id), 
-                "date": submission.submission_date.strftime('%Y-%m-%d %H:%M:%S'), 
-                "filename": submission.filename} for submission in recent_submissions]
-
 # Function to get calendar data with submissions marked
 def get_calendar_data(employee_id, year, month):
-    with app.app_context():
-        # Get all submissions for the employee
-        reports = Report.query.filter_by(employee_id=employee_id).all()
-        submissions = [report.submission_date.date() for report in reports]
-        
-        # Calculate the calendar grid
-        cal = calendar.monthcalendar(year, month)
-        
-        # Get the first Monday of the month (or before)
-        first_day = date(year, month, 1)
-        first_monday = first_day - timedelta(days=first_day.weekday())
-        
-        # Calculate which Mondays should have submissions
-        mondays = []
-        current_monday = first_monday
-        while current_monday.month == month or (current_monday.month < month and current_monday.year == year):
-            if current_monday.month == month:
-                mondays.append(current_monday)
-            current_monday += timedelta(days=7)
-        
-        # Mark submissions as completed or missing
-        calendar_data = {
-            'weeks': cal,
-            'month_name': calendar.month_name[month],
-            'year': year,
-            'submissions': submissions,
-            'mondays': mondays
-        }
-        
-        return calendar_data
+    # Get all submissions for the employee
+    submissions = Report.query.filter_by(employee_id=employee_id).all()
+    submission_dates = [report.submission_date.date() for report in submissions]
+    
+    # Calculate the calendar grid
+    cal = calendar.monthcalendar(year, month)
+    
+    # Get the first Monday of the month (or before)
+    first_day = date(year, month, 1)
+    first_monday = first_day - timedelta(days=first_day.weekday())
+    
+    # Calculate which Mondays should have submissions
+    mondays = []
+    current_monday = first_monday
+    while current_monday.month == month or (current_monday.month < month and current_monday.year == year):
+        if current_monday.month == month:
+            mondays.append(current_monday)
+        current_monday += timedelta(days=7)
+    
+    # Mark submissions as completed or missing
+    calendar_data = {
+        'weeks': cal,
+        'month_name': calendar.month_name[month],
+        'year': year,
+        'submissions': submission_dates,
+        'mondays': mondays
+    }
+    
+    return calendar_data
 
 # Routes
-@app.route('/')
+@bp.route('/')
 def index():
     if 'employee_id' in session:
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('main.dashboard'))
     # Pass the current datetime to the template for dynamic copyright year
     now = datetime.now()
     return render_template('index.html', now=now)
 
-@app.route('/signup', methods=['GET', 'POST'])
+@bp.route('/signup', methods=['GET', 'POST'])
 def signup():
     # If already logged in, redirect to dashboard
     if 'employee_id' in session:
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('main.dashboard'))
         
     if request.method == 'POST':
         name = request.form['name']
@@ -301,13 +183,16 @@ def signup():
         
         # Check if email already exists
         existing_user = Employee.query.filter_by(email=email).first()
+        
         if existing_user:
             flash("Email already registered", "danger")
             return render_template('signup.html', now=datetime.now())
         
+        employee_id = str(uuid.uuid4())
         try:
             folder_id = create_onedrive_folder(name)
             new_employee = Employee(
+                id=employee_id,
                 name=name,
                 email=email,
                 password=password,
@@ -315,16 +200,16 @@ def signup():
             )
             db.session.add(new_employee)
             db.session.commit()
-            
             flash("Sign-up successful! Please log in.", "success")
-            return redirect(url_for('index'))
+            return redirect(url_for('main.index'))
         except Exception as e:
+            db.session.rollback()
             logging.error(f"Signup error: {str(e)}")
             flash(f"Error: {str(e)}", "danger")
     
     return render_template('signup.html', now=datetime.now())
 
-@app.route('/login', methods=['POST'])
+@bp.route('/login', methods=['POST'])
 def login():
     email = request.form['email']
     password = request.form['password']
@@ -334,54 +219,65 @@ def login():
     if not all([email, password]):
         logging.debug("Missing email or password")
         flash("Email and password are required", "danger")
-        return redirect(url_for('index'))
+        return redirect(url_for('main.index'))
     
     try:
-        # Find user by email
-        user = Employee.query.filter_by(email=email).first()
+        # Find the user by email
+        employee = Employee.query.filter_by(email=email).first()
         
-        if not user:
+        if not employee:
             logging.debug(f"No user found with email: {email}")
             flash("Email not registered", "danger")
-            return redirect(url_for('index'))
+            return redirect(url_for('main.index'))
         
         # Check password
-        if user.password == password:
-            session['employee_id'] = str(user.id)
-            session['employee_name'] = user.name
-            session['folder_id'] = user.folder_id
-            flash(f"Welcome back, {user.name}!", "success")
-            return redirect(url_for('dashboard'))
+        if employee.password == password:
+            session['employee_id'] = str(employee.id)
+            session['employee_name'] = employee.name
+            session['folder_id'] = employee.folder_id
+            flash(f"Welcome back, {employee.name}!", "success")
+            return redirect(url_for('main.dashboard'))
         else:
             logging.debug("Password mismatch")
             flash("Invalid password", "danger")
-            return redirect(url_for('index'))
+            return redirect(url_for('main.index'))
     except Exception as e:
         logging.error(f"Login error: {str(e)}")
         flash("An error occurred during login. Please try again.", "danger")
     
-    return redirect(url_for('index'))
+    return redirect(url_for('main.index'))
 
-@app.route('/dashboard', methods=['GET', 'POST'])
+@bp.route('/dashboard', methods=['GET', 'POST'])
 def dashboard():
     if 'employee_id' not in session:
         flash("Please log in to access your dashboard", "warning")
-        return redirect(url_for('index'))
+        return redirect(url_for('main.index'))
     
-    recent_submissions = get_recent_submissions(session['employee_id'])
+    employee_id = session['employee_id']
+    employee = Employee.query.get(employee_id)
+    
+    if not employee:
+        session.clear()
+        flash("User not found. Please log in again.", "warning")
+        return redirect(url_for('main.index'))
+    
+    # Get recent submissions
+    recent_submissions = Report.query.filter_by(employee_id=employee_id).order_by(Report.submission_date.desc()).limit(5).all()
+    submissions_data = [{"id": str(report.id), "date": report.submission_date.strftime('%Y-%m-%d %H:%M:%S'), "filename": report.filename} for report in recent_submissions]
+    
     now = datetime.now()
     
     if request.method == 'POST':
         if 'report' not in request.files:
             flash("No file selected", "danger")
             return render_template('dashboard.html', name=session['employee_name'], 
-                                 submissions=recent_submissions, now=now)
+                                 submissions=submissions_data, now=now)
         
         file = request.files['report']
         if file.filename == '':
             flash("No file selected", "danger")
             return render_template('dashboard.html', name=session['employee_name'], 
-                                 submissions=recent_submissions, now=now)
+                                 submissions=submissions_data, now=now)
         
         if file:
             # Get file extension
@@ -390,12 +286,25 @@ def dashboard():
             # Generate unique filename with date
             filename = f"Weekly_Report_{session['employee_name']}_{now.strftime('%Y%m%d_%H%M%S')}.{file_ext}"
             try:
+                # Upload to OneDrive
                 file_info = upload_to_onedrive(file.read(), session['folder_id'], filename)
-                record_submission(session['employee_id'], filename)
+                
+                # Record in database
+                new_report = Report(
+                    id=str(uuid.uuid4()),
+                    employee_id=employee_id,
+                    submission_date=now,
+                    filename=filename
+                )
+                db.session.add(new_report)
+                db.session.commit()
+                
                 flash("Report uploaded successfully!", "success")
                 # Refresh submissions list
-                recent_submissions = get_recent_submissions(session['employee_id'])
+                recent_submissions = Report.query.filter_by(employee_id=employee_id).order_by(Report.submission_date.desc()).limit(5).all()
+                submissions_data = [{"id": str(report.id), "date": report.submission_date.strftime('%Y-%m-%d %H:%M:%S'), "filename": report.filename} for report in recent_submissions]
             except Exception as e:
+                db.session.rollback()
                 logging.error(f"File upload error: {str(e)}")
                 flash(f"Error: {str(e)}", "danger")
     
@@ -404,28 +313,25 @@ def dashboard():
     next_monday = today + timedelta(days=(7 - today.weekday()))
     
     # Get calendar data for current month
-    calendar_data = get_calendar_data(session['employee_id'], now.year, now.month)
+    calendar_data = get_calendar_data(employee_id, now.year, now.month)
     
     return render_template('dashboard.html', 
                          name=session['employee_name'], 
-                         submissions=recent_submissions, 
+                         submissions=submissions_data, 
                          now=now, 
                          next_monday=next_monday,
                          calendar=calendar_data)
 
-@app.route('/logout')
+@bp.route('/logout')
 def logout():
     session.clear()
     flash("You have been logged out", "info")
-    return redirect(url_for('index'))
+    return redirect(url_for('main.index'))
 
-@app.errorhandler(404)
+@bp.errorhandler(404)
 def page_not_found(e):
     return render_template('404.html'), 404
 
-@app.errorhandler(500)
+@bp.errorhandler(500)
 def internal_server_error(e):
     return render_template('500.html'), 500
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
