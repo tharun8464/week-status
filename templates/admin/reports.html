@@ -1,6 +1,6 @@
 {% extends 'admin/base.html' %}
 
-{% block title %}Reports Management - SBS Corp Admin{% endblock %}
+{% block title %}Manage Reports - SBS Corp Admin{% endblock %}
 
 {% block content %}
 <div class="row mb-4">
@@ -8,7 +8,17 @@
         <h1 class="mb-0">
             <i class="fas fa-file-alt text-primary me-2"></i> Reports
         </h1>
-        <p class="text-muted">Manage employee report submissions</p>
+        <p class="text-muted">Manage all employee reports in the system</p>
+    </div>
+    <div class="col-md-4 text-md-end d-flex align-items-center justify-content-md-end mt-3 mt-md-0">
+        <div class="btn-group" role="group">
+            <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-light">
+                <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+            </a>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exportModal">
+                <i class="fas fa-file-export me-1"></i> Export
+            </button>
+        </div>
     </div>
 </div>
 
@@ -18,12 +28,12 @@
         <div class="card bg-dark border-0 shadow-sm">
             <div class="card-body">
                 <div class="row g-3">
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <div class="input-group">
                             <span class="input-group-text bg-dark text-light border-secondary">
                                 <i class="fas fa-search"></i>
                             </span>
-                            <input type="text" class="form-control bg-dark text-light border-secondary" id="reportSearch" placeholder="Search by employee or filename...">
+                            <input type="text" class="form-control bg-dark text-light border-secondary" id="reportSearch" placeholder="Search by name or filename...">
                         </div>
                     </div>
                     <div class="col-md-3">
@@ -35,8 +45,17 @@
                         </select>
                     </div>
                     <div class="col-md-3">
+                        <select class="form-select bg-dark text-light border-secondary" id="dateFilter">
+                            <option value="all">All Time</option>
+                            <option value="today">Today</option>
+                            <option value="week">This Week</option>
+                            <option value="month">This Month</option>
+                            <option value="year">This Year</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
                         <select class="form-select bg-dark text-light border-secondary" id="sortBy">
-                            <option value="recent">Most Recent</option>
+                            <option value="newest">Newest First</option>
                             <option value="oldest">Oldest First</option>
                             <option value="employee">By Employee</option>
                         </select>
@@ -47,93 +66,36 @@
     </div>
 </div>
 
-<!-- Summary Cards -->
-<div class="row mb-4">
-    <!-- Total Reports Card -->
-    <div class="col-md-4 mb-4">
-        <div class="card h-100 bg-dark border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="icon-box me-3 bg-primary bg-opacity-25 text-primary">
-                        <i class="fas fa-file-alt fa-lg"></i>
-                    </div>
-                    <div>
-                        <h6 class="card-title mb-1 text-muted">Total Reports</h6>
-                        <h2 class="counter-value fw-bold mb-0">{{ reports|length }}</h2>
-                    </div>
-                </div>
-                <div class="mt-3 d-flex justify-content-between text-muted small">
-                    <span>From {{ employees_count }} employees</span>
-                    <span id="visibleReportsCount">Showing all reports</span>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Status Breakdown -->
-    <div class="col-md-8 mb-4">
-        <div class="card h-100 bg-dark border-0 shadow-sm">
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-4 border-end border-secondary">
-                        <div class="text-center">
-                            <div class="icon-box mx-auto mb-2 bg-info bg-opacity-25 text-info">
-                                <i class="fas fa-file-upload fa-lg"></i>
-                            </div>
-                            <h6 class="text-muted">Submitted</h6>
-                            <h2 class="counter-value">{{ submitted_count }}</h2>
-                        </div>
-                    </div>
-                    <div class="col-md-4 border-end border-secondary">
-                        <div class="text-center">
-                            <div class="icon-box mx-auto mb-2 bg-success bg-opacity-25 text-success">
-                                <i class="fas fa-check-circle fa-lg"></i>
-                            </div>
-                            <h6 class="text-muted">Approved</h6>
-                            <h2 class="counter-value">{{ approved_count }}</h2>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="text-center">
-                            <div class="icon-box mx-auto mb-2 bg-danger bg-opacity-25 text-danger">
-                                <i class="fas fa-times-circle fa-lg"></i>
-                            </div>
-                            <h6 class="text-muted">Rejected</h6>
-                            <h2 class="counter-value">{{ rejected_count }}</h2>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Reports List -->
+<!-- Reports Table -->
 <div class="row">
     <div class="col-12">
         <div class="card bg-dark border-0 shadow-sm">
-            <div class="card-header bg-dark border-bottom border-secondary">
+            <div class="card-header bg-dark border-bottom border-secondary d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">
-                    <i class="fas fa-list text-primary me-2"></i> All Reports
+                    <i class="fas fa-list text-primary me-2"></i> Report List
                 </h5>
+                <span class="badge bg-primary">{{ reports|length }} Reports</span>
             </div>
             <div class="card-body p-0">
                 {% if reports %}
                 <div class="table-responsive">
-                    <table class="table table-dark table-hover align-middle mb-0" id="reportTable">
+                    <table class="table table-dark table-hover align-middle mb-0">
                         <thead>
                             <tr>
                                 <th scope="col">Employee</th>
-                                <th scope="col">Report Name</th>
-                                <th scope="col">Submission Date</th>
+                                <th scope="col">Report</th>
+                                <th scope="col">Date</th>
                                 <th scope="col">Status</th>
-                                <th scope="col">Review Date</th>
                                 <th scope="col">Actions</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="reportsTable">
                             {% for report in reports %}
-                            <tr data-employee="{{ report.user.name.lower() }}" data-status="{{ report.status }}">
+                            <tr 
+                                data-employee="{{ report.user.name|lower }}" 
+                                data-filename="{{ report.filename|lower }}"
+                                data-status="{{ report.status }}"
+                                data-date="{{ report.submission_date.strftime('%Y-%m-%d') }}">
                                 <td>
                                     <div class="d-flex align-items-center">
                                         <div class="avatar-circle me-2" style="width: 30px; height: 30px; font-size: 12px;">
@@ -142,7 +104,12 @@
                                         <span>{{ report.user.name }}</span>
                                     </div>
                                 </td>
-                                <td>{{ report.filename }}</td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <i class="far fa-file-pdf text-danger me-2"></i>
+                                        <span class="text-truncate" style="max-width: 200px;">{{ report.filename }}</span>
+                                    </div>
+                                </td>
                                 <td>{{ report.submission_date.strftime('%Y-%m-%d %H:%M') }}</td>
                                 <td>
                                     {% if report.status == 'submitted' %}
@@ -154,20 +121,15 @@
                                     {% endif %}
                                 </td>
                                 <td>
-                                    {% if report.review_date %}
-                                    {{ report.review_date.strftime('%Y-%m-%d %H:%M') }}
-                                    {% else %}
-                                    <span class="text-muted">Not reviewed</span>
-                                    {% endif %}
-                                </td>
-                                <td>
                                     <div class="btn-group" role="group">
                                         <a href="{{ url_for('admin.view_report', id=report.id) }}" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="View Report">
                                             <i class="fas fa-eye"></i>
                                         </a>
+                                        {% if report.status == 'submitted' %}
                                         <a href="{{ url_for('admin.review_report', id=report.id) }}" class="btn btn-sm btn-outline-success" data-bs-toggle="tooltip" title="Review Report">
-                                            <i class="fas fa-check"></i>
+                                            <i class="fas fa-clipboard-check"></i>
                                         </a>
+                                        {% endif %}
                                     </div>
                                 </td>
                             </tr>
@@ -181,16 +143,159 @@
                         <i class="fas fa-file-alt fa-3x"></i>
                     </div>
                     <h5>No reports found</h5>
-                    <p class="text-muted">Reports will be displayed here as they are submitted.</p>
+                    <p class="text-muted">Reports will be displayed here as they are submitted by employees</p>
                 </div>
                 {% endif %}
+            </div>
+            {% if reports|length > 10 %}
+            <div class="card-footer bg-dark border-top border-secondary d-flex justify-content-center">
+                <nav aria-label="Report pagination">
+                    <ul class="pagination mb-0">
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" tabindex="-1">Previous</a>
+                        </li>
+                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                        <li class="page-item"><a class="page-link" href="#">2</a></li>
+                        <li class="page-item"><a class="page-link" href="#">3</a></li>
+                        <li class="page-item">
+                            <a class="page-link" href="#">Next</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Report Distribution by Employee Card -->
+<div class="row mt-4">
+    <div class="col-md-6 mb-4">
+        <div class="card bg-dark border-0 shadow-sm h-100">
+            <div class="card-header bg-dark border-bottom border-secondary">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-bar text-primary me-2"></i> Reports by Status
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="statusChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-4">
+        <div class="card bg-dark border-0 shadow-sm h-100">
+            <div class="card-header bg-dark border-bottom border-secondary">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-pie text-primary me-2"></i> Reports by Timeliness
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="timelinessChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Export Modal -->
+<div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark border border-secondary">
+            <div class="modal-header border-bottom border-secondary">
+                <h5 class="modal-title" id="exportModalLabel">
+                    <i class="fas fa-file-export text-primary me-2"></i> Export Reports
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="exportForm">
+                    <div class="mb-3">
+                        <label for="exportFormat" class="form-label">Export Format</label>
+                        <select class="form-select bg-dark text-light border-secondary" id="exportFormat">
+                            <option value="csv">CSV File</option>
+                            <option value="excel">Excel File</option>
+                            <option value="pdf">PDF File</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="exportDateRange" class="form-label">Date Range</label>
+                        <select class="form-select bg-dark text-light border-secondary" id="exportDateRange">
+                            <option value="all">All Time</option>
+                            <option value="week">This Week</option>
+                            <option value="month">This Month</option>
+                            <option value="year">This Year</option>
+                            <option value="custom">Custom Range</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="exportInclude" class="form-label">Include Reports</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="includeAll" checked>
+                            <label class="form-check-label" for="includeAll">All Reports</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="includeSubmitted" disabled>
+                            <label class="form-check-label" for="includeSubmitted">Submitted Only</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="includeApproved" disabled>
+                            <label class="form-check-label" for="includeApproved">Approved Only</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="includeRejected" disabled>
+                            <label class="form-check-label" for="includeRejected">Rejected Only</label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-top border-secondary">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary">
+                    <i class="fas fa-download me-1"></i> Export
+                </button>
             </div>
         </div>
     </div>
 </div>
 {% endblock %}
 
+{% block styles %}
+<style>
+.avatar-circle {
+    width: 40px;
+    height: 40px;
+    background-color: #6c757d;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+}
+
+.pagination .page-link {
+    background-color: #343a40;
+    border-color: #495057;
+    color: #f8f9fa;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.pagination .page-item.disabled .page-link {
+    background-color: #343a40;
+    border-color: #495057;
+    color: #6c757d;
+}
+</style>
+{% endblock %}
+
 {% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize tooltips
@@ -199,107 +304,192 @@ document.addEventListener('DOMContentLoaded', function() {
         return new bootstrap.Tooltip(tooltipTriggerEl);
     });
     
-    // Filter functionality
-    const searchInput = document.getElementById('reportSearch');
+    // Search functionality
+    const reportSearch = document.getElementById('reportSearch');
     const statusFilter = document.getElementById('statusFilter');
+    const dateFilter = document.getElementById('dateFilter');
     const sortBy = document.getElementById('sortBy');
-    const visibleReportsCount = document.getElementById('visibleReportsCount');
+    const reportsTable = document.getElementById('reportsTable');
+    const rows = reportsTable.querySelectorAll('tr');
     
-    function filterTable() {
-        const searchTerm = searchInput.value.toLowerCase();
-        const status = statusFilter.value;
-        const table = document.getElementById('reportTable');
-        const rows = table.querySelectorAll('tbody tr');
-        
-        let visibleCount = 0;
+    function filterReports() {
+        const searchTerm = reportSearch.value.toLowerCase();
+        const statusValue = statusFilter.value;
+        const dateValue = dateFilter.value;
         
         rows.forEach(row => {
-            const employee = row.dataset.employee;
-            const filename = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
-            const rowStatus = row.dataset.status;
+            const employee = row.getAttribute('data-employee');
+            const filename = row.getAttribute('data-filename');
+            const status = row.getAttribute('data-status');
+            const date = row.getAttribute('data-date');
             
-            const nameMatch = employee.includes(searchTerm);
-            const filenameMatch = filename.includes(searchTerm);
-            const statusMatch = status === 'all' || rowStatus === status;
+            let showRow = true;
             
-            if ((nameMatch || filenameMatch) && statusMatch) {
-                row.style.display = '';
-                visibleCount++;
-            } else {
-                row.style.display = 'none';
+            // Search term filter
+            if (searchTerm) {
+                if (!employee.includes(searchTerm) && !filename.includes(searchTerm)) {
+                    showRow = false;
+                }
             }
+            
+            // Status filter
+            if (statusValue !== 'all' && status !== statusValue) {
+                showRow = false;
+            }
+            
+            // Date filter
+            if (dateValue !== 'all') {
+                const today = new Date().toISOString().split('T')[0];
+                
+                if (dateValue === 'today' && date !== today) {
+                    showRow = false;
+                } else if (dateValue === 'week') {
+                    // Logic for this week filter
+                    const reportDate = new Date(date);
+                    const currentDate = new Date();
+                    const startOfWeek = new Date(currentDate);
+                    startOfWeek.setDate(currentDate.getDate() - currentDate.getDay());
+                    
+                    if (reportDate < startOfWeek) {
+                        showRow = false;
+                    }
+                } else if (dateValue === 'month') {
+                    // Logic for this month filter
+                    const reportMonth = date.substring(0, 7); // YYYY-MM
+                    const currentMonth = today.substring(0, 7);
+                    
+                    if (reportMonth !== currentMonth) {
+                        showRow = false;
+                    }
+                } else if (dateValue === 'year') {
+                    // Logic for this year filter
+                    const reportYear = date.substring(0, 4); // YYYY
+                    const currentYear = today.substring(0, 4);
+                    
+                    if (reportYear !== currentYear) {
+                        showRow = false;
+                    }
+                }
+            }
+            
+            row.style.display = showRow ? '' : 'none';
         });
-        
-        // Update visible count
-        visibleReportsCount.textContent = visibleCount === rows.length ? 
-            'Showing all reports' : 
-            `Showing ${visibleCount} of ${rows.length}`;
     }
     
-    searchInput.addEventListener('keyup', filterTable);
-    statusFilter.addEventListener('change', filterTable);
+    reportSearch.addEventListener('input', filterReports);
+    statusFilter.addEventListener('change', filterReports);
+    dateFilter.addEventListener('change', filterReports);
     
-    // Sorting functionality
-    sortBy.addEventListener('change', function() {
-        const value = this.value;
-        const table = document.getElementById('reportTable');
-        const tbody = table.querySelector('tbody');
-        const rows = Array.from(tbody.querySelectorAll('tr'));
-        
-        rows.sort((a, b) => {
-            if (value === 'employee') {
-                const employeeA = a.dataset.employee;
-                const employeeB = b.dataset.employee;
-                return employeeA.localeCompare(employeeB);
-            } else if (value === 'recent' || value === 'oldest') {
-                const dateA = new Date(a.querySelector('td:nth-child(3)').textContent);
-                const dateB = new Date(b.querySelector('td:nth-child(3)').textContent);
-                
-                return value === 'recent' ? dateB - dateA : dateA - dateB;
+    // Export modal functionality
+    const includeAll = document.getElementById('includeAll');
+    const includeSubmitted = document.getElementById('includeSubmitted');
+    const includeApproved = document.getElementById('includeApproved');
+    const includeRejected = document.getElementById('includeRejected');
+    
+    includeAll.addEventListener('change', function() {
+        const checked = this.checked;
+        [includeSubmitted, includeApproved, includeRejected].forEach(checkbox => {
+            checkbox.disabled = checked;
+            if (checked) {
+                checkbox.checked = false;
             }
-            
-            return 0;
         });
-        
-        // Clear tbody and append sorted rows
-        rows.forEach(row => tbody.appendChild(row));
     });
     
-    // Animate cards with staggered delay
-    const cards = document.querySelectorAll('.card');
-    cards.forEach((card, index) => {
-        setTimeout(() => {
-            card.style.opacity = '0';
-            card.style.transform = 'translateY(20px)';
-            
-            setTimeout(() => {
-                card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
-                card.style.opacity = '1';
-                card.style.transform = 'translateY(0)';
-            }, 50);
-        }, 100 * index);
+    [includeSubmitted, includeApproved, includeRejected].forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const anyChecked = [includeSubmitted, includeApproved, includeRejected].some(cb => cb.checked);
+            includeAll.disabled = anyChecked;
+            if (anyChecked) {
+                includeAll.checked = false;
+            }
+        });
     });
     
-    // Animate counter values
-    const counterElements = document.querySelectorAll('.counter-value');
-    counterElements.forEach((counter, index) => {
-        const targetValue = parseInt(counter.textContent.trim());
-        if (!isNaN(targetValue)) {
-            counter.textContent = '0';
-            
-            setTimeout(() => {
-                let currentValue = 0;
-                const increment = Math.max(1, Math.ceil(targetValue / 20));
-                const interval = setInterval(() => {
-                    currentValue += increment;
-                    counter.textContent = currentValue;
-                    
-                    if (currentValue >= targetValue) {
-                        counter.textContent = targetValue;
-                        clearInterval(interval);
+    // Chart data
+    {% set submitted_count = reports|selectattr('status', 'equalto', 'submitted')|list|length %}
+    {% set approved_count = reports|selectattr('status', 'equalto', 'approved')|list|length %}
+    {% set rejected_count = reports|selectattr('status', 'equalto', 'rejected')|list|length %}
+    
+    // Status Chart
+    const statusCtx = document.getElementById('statusChart').getContext('2d');
+    const statusChart = new Chart(statusCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Submitted', 'Approved', 'Rejected'],
+            datasets: [{
+                label: 'Number of Reports',
+                data: [{{ submitted_count }}, {{ approved_count }}, {{ rejected_count }}],
+                backgroundColor: [
+                    'rgba(23, 162, 184, 0.5)',
+                    'rgba(40, 167, 69, 0.5)',
+                    'rgba(220, 53, 69, 0.5)'
+                ],
+                borderColor: [
+                    'rgba(23, 162, 184, 1)',
+                    'rgba(40, 167, 69, 1)',
+                    'rgba(220, 53, 69, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1,
+                        color: '#adb5bd'
+                    },
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
                     }
-                }, 50);
-            }, 300 + (index * 100));
+                },
+                x: {
+                    ticks: {
+                        color: '#adb5bd'
+                    },
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+    
+    // Timeliness Chart
+    const timelinessCtx = document.getElementById('timelinessChart').getContext('2d');
+    const timelinessChart = new Chart(timelinessCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['On Time', 'Late', 'Missing'],
+            datasets: [{
+                data: [{{ on_time_count }}, {{ late_count }}, {{ not_submitted_count }}],
+                backgroundColor: [
+                    'rgba(40, 167, 69, 0.8)',
+                    'rgba(255, 193, 7, 0.8)',
+                    'rgba(220, 53, 69, 0.8)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        color: '#adb5bd'
+                    }
+                }
+            },
+            cutout: '70%'
         }
     });
 });

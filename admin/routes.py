@@ -386,9 +386,57 @@ def delete_employee(id):
 @login_required
 @admin_required
 def reports():
+    # Get all reports
     reports = Report.query.order_by(desc(Report.submission_date)).all()
+    
+    # Get statistics for the charts
+    today = datetime.now()
+    start_of_week = today - timedelta(days=today.weekday())
+    start_of_week = datetime(start_of_week.year, start_of_week.month, start_of_week.day)
+    
+    # Get Sunday (end of previous week)
+    prev_sunday = start_of_week - timedelta(days=1)
+    prev_sunday = datetime(prev_sunday.year, prev_sunday.month, prev_sunday.day, 23, 59, 59)
+    
+    # Calculate missing reports (employees who haven't submitted this week)
+    all_employees = User.query.filter_by(role='employee', active=True).all()
+    employees_submitted = db.session.query(Report.employee_id).filter(
+        Report.submission_date >= start_of_week
+    ).distinct().all()
+    submitted_ids = [item[0] for item in employees_submitted]
+    not_submitted_count = sum(1 for emp in all_employees if emp.id not in submitted_ids)
+    
+    # Calculate on-time and late submissions
+    on_time_count = 0
+    late_count = 0
+    
+    for employee_id in submitted_ids:
+        # Get the earliest submission for this week
+        earliest_report = Report.query.filter(
+            Report.employee_id == employee_id,
+            Report.submission_date >= start_of_week
+        ).order_by(Report.submission_date).first()
+        
+        if earliest_report:
+            # Monday 9 AM deadline
+            deadline = start_of_week + timedelta(hours=9)
+            
+            # If submitted by deadline, it's on time, otherwise late
+            if earliest_report.submission_date <= deadline:
+                on_time_count += 1
+            else:
+                late_count += 1
+    
     log_admin_activity("Viewed reports list")
-    return render_template('admin/reports.html', reports=reports, now=datetime.now())
+    
+    return render_template(
+        'admin/reports.html', 
+        reports=reports, 
+        on_time_count=on_time_count,
+        late_count=late_count,
+        not_submitted_count=not_submitted_count,
+        now=datetime.now()
+    )
 
 # View single report
 @bp.route('/reports/view/<id>')
