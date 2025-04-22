@@ -112,9 +112,8 @@ def dashboard():
         ).order_by(Report.submission_date).first()
         
         if earliest_report:
-            # Sunday 11:59 PM deadline (end of previous week)
-            prev_sunday = start_of_week - timedelta(days=1)
-            deadline = datetime(prev_sunday.year, prev_sunday.month, prev_sunday.day, 23, 59, 59)
+            # Monday 9 AM deadline
+            deadline = start_of_week + timedelta(hours=9)
             
             # If submitted by deadline, it's on time, otherwise late
             if earliest_report.submission_date <= deadline:
@@ -408,9 +407,8 @@ def reports():
         ).order_by(Report.submission_date).first()
         
         if earliest_report:
-            # Sunday 11:59 PM deadline (end of previous week)
-            prev_sunday = start_of_week - timedelta(days=1)
-            deadline = datetime(prev_sunday.year, prev_sunday.month, prev_sunday.day, 23, 59, 59)
+            # Monday 9 AM deadline
+            deadline = start_of_week + timedelta(hours=9)
             
             # If submitted by deadline, it's on time, otherwise late
             if earliest_report.submission_date <= deadline:
