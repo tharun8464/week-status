@@ -393,6 +393,12 @@
         });
     </script>
     
+    <!-- Chart.js for visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+    
+    <!-- Team Performance Visualization -->
+    <script src="{{ url_for('static', filename='js/team-performance.js') }}"></script>
+    
     <!-- Extra JavaScript -->
     {% block scripts %}{% endblock %}
 </body>
