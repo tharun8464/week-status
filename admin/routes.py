@@ -1,6 +1,7 @@
 import os
 import logging
 import uuid
+from importlib import reload 
 from datetime import datetime, timedelta
 from flask import Blueprint, render_template, redirect, url_for, request, flash, session, abort
 from flask_login import login_required, current_user
@@ -673,8 +674,35 @@ def settings_notifications():
         if action == 'update_email_settings':
             # Process email settings form
             try:
-                # In a production environment, you would update these in the environment
-                # or a config file. This is a simplified version for demonstration.
+                smtp_server = request.form.get('smtp_server')
+                smtp_port = request.form.get('smtp_port')
+                smtp_username = request.form.get('smtp_username')
+                smtp_password = request.form.get('smtp_password')
+                smtp_use_tls = 'true' if request.form.get('smtp_use_tls') else 'false'
+                sender_name = request.form.get('sender_name')
+                sender_email = request.form.get('sender_email')
+                
+                # In a production environment, these would be stored in environment variables
+                # For demonstration, we're using the environment variables directly
+                os.environ['SMTP_SERVER'] = smtp_server
+                os.environ['SMTP_PORT'] = smtp_port
+                
+                # Only update password if provided
+                if smtp_username:
+                    os.environ['SMTP_USERNAME'] = smtp_username
+                if smtp_password:
+                    os.environ['SMTP_PASSWORD'] = smtp_password
+                    
+                os.environ['SMTP_USE_TLS'] = smtp_use_tls
+                
+                if sender_name:
+                    os.environ['SENDER_NAME'] = sender_name
+                if sender_email:
+                    os.environ['SENDER_EMAIL'] = sender_email
+                
+                # Reload the email service to use new settings
+                reload(email_service)
+                
                 flash("Email settings updated successfully", "success")
                 log_admin_activity("Updated email notification settings")
             except Exception as e:

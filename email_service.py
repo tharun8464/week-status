@@ -14,7 +14,7 @@ SMTP_USERNAME = os.environ.get('SMTP_USERNAME')
 SMTP_PASSWORD = os.environ.get('SMTP_PASSWORD')
 SMTP_USE_TLS = os.environ.get('SMTP_USE_TLS', 'True').lower() in ('true', '1', 't')
 SENDER_NAME = os.environ.get('SENDER_NAME', 'SBS Corp Weekly Status Report System')
-SENDER_EMAIL = os.environ.get('SENDER_EMAIL', 'noreply@sbscorp.com')
+SENDER_EMAIL = os.environ.get('SENDER_EMAIL', 'statusreports@mysbscorp.com')
 
 
 def send_email(to_email, subject, html_content=None, text_content=None):
