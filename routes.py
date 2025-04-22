@@ -354,6 +354,16 @@ def dashboard():
     today = now.date()
     next_monday = today + timedelta(days=(7 - today.weekday()))
     
+    # Generate past weekend dates for the dropdown
+    weekend_dates = []
+    for i in range(8):
+        past_monday = today - timedelta(days=7*(i+1) + today.weekday())
+        weekend_date = past_monday + timedelta(days=6)  # Saturday
+        weekend_dates.append({
+            'value': weekend_date.strftime('%Y-%m-%d'),
+            'display': weekend_date.strftime('%b %d, %Y')
+        })
+    
     # Get calendar data for current month
     calendar_data = get_calendar_data(employee_id, now.year, now.month)
     
@@ -363,8 +373,7 @@ def dashboard():
                          now=now, 
                          next_monday=next_monday,
                          calendar=calendar_data,
-                         timedelta=timedelta,
-                         datetime=datetime,
+                         weekend_dates=weekend_dates,
                          date=date)
 
 @bp.route('/logout')
