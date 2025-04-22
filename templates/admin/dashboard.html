@@ -115,6 +115,103 @@
     </div>
 </div>
 
+<!-- Report Status Overview -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card bg-dark border-0 shadow-sm">
+            <div class="card-header bg-dark border-bottom border-secondary">
+                <h4 class="mb-0">
+                    <i class="fas fa-chart-pie text-primary me-2"></i> Weekly Report Status
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <!-- On Time Reports Card -->
+                    <div class="col-md-4 mb-3">
+                        <div class="card h-100 bg-dark border border-secondary">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="icon-box me-3 bg-success bg-opacity-25 text-success">
+                                        <i class="fas fa-check-circle fa-lg"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="card-title mb-1 text-muted">On Time Submissions</h6>
+                                        <h2 class="counter-value fw-bold mb-0">{{ on_time_count }}</h2>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <div class="progress bg-dark">
+                                        {% set on_time_percentage = (on_time_count / employee_count * 100) if employee_count > 0 else 0 %}
+                                        <div class="progress-bar bg-success" role="progressbar" 
+                                             style="width: {{ on_time_percentage }}%" 
+                                             aria-valuenow="{{ on_time_percentage }}" aria-valuemin="0" aria-valuemax="100">
+                                            {{ '%0.1f'| format(on_time_percentage) }}%
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Late Reports Card -->
+                    <div class="col-md-4 mb-3">
+                        <div class="card h-100 bg-dark border border-secondary">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="icon-box me-3 bg-warning bg-opacity-25 text-warning">
+                                        <i class="fas fa-clock fa-lg"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="card-title mb-1 text-muted">Late Submissions</h6>
+                                        <h2 class="counter-value fw-bold mb-0">{{ late_count }}</h2>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <div class="progress bg-dark">
+                                        {% set late_percentage = (late_count / employee_count * 100) if employee_count > 0 else 0 %}
+                                        <div class="progress-bar bg-warning" role="progressbar" 
+                                             style="width: {{ late_percentage }}%" 
+                                             aria-valuenow="{{ late_percentage }}" aria-valuemin="0" aria-valuemax="100">
+                                            {{ '%0.1f'| format(late_percentage) }}%
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Missing Reports Card -->
+                    <div class="col-md-4 mb-3">
+                        <div class="card h-100 bg-dark border border-secondary">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="icon-box me-3 bg-danger bg-opacity-25 text-danger">
+                                        <i class="fas fa-times-circle fa-lg"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="card-title mb-1 text-muted">Missing Submissions</h6>
+                                        <h2 class="counter-value fw-bold mb-0">{{ not_submitted_count }}</h2>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <div class="progress bg-dark">
+                                        {% set missing_percentage = (not_submitted_count / employee_count * 100) if employee_count > 0 else 0 %}
+                                        <div class="progress-bar bg-danger" role="progressbar" 
+                                             style="width: {{ missing_percentage }}%" 
+                                             aria-valuenow="{{ missing_percentage }}" aria-valuemin="0" aria-valuemax="100">
+                                            {{ '%0.1f'| format(missing_percentage) }}%
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Recent Activity and Reports -->
 <div class="row">
     <!-- Recent Reports -->

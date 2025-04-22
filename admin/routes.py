@@ -79,6 +79,12 @@ def dashboard():
     today = datetime.now()
     start_of_week = today - timedelta(days=today.weekday())
     start_of_week = datetime(start_of_week.year, start_of_week.month, start_of_week.day)
+    
+    # Get Sunday (end of previous week)
+    prev_sunday = start_of_week - timedelta(days=1)
+    prev_sunday = datetime(prev_sunday.year, prev_sunday.month, prev_sunday.day, 23, 59, 59)
+    
+    # Total reports this week
     reports_this_week = Report.query.filter(Report.submission_date >= start_of_week).count()
     
     # Calculate missing reports (employees who haven't submitted this week)
@@ -88,6 +94,29 @@ def dashboard():
     ).distinct().all()
     submitted_ids = [item[0] for item in employees_submitted]
     missing_reports = sum(1 for emp in all_employees if emp.id not in submitted_ids)
+    
+    # Enhanced reporting statistics
+    on_time_count = 0
+    late_count = 0
+    not_submitted_count = missing_reports
+    
+    # For each employee who submitted, determine if it was on time or late
+    for employee_id in submitted_ids:
+        # Get the earliest submission for this week
+        earliest_report = Report.query.filter(
+            Report.employee_id == employee_id,
+            Report.submission_date >= start_of_week
+        ).order_by(Report.submission_date).first()
+        
+        if earliest_report:
+            # Monday 9 AM deadline
+            deadline = start_of_week + timedelta(hours=9)
+            
+            # If submitted by deadline, it's on time, otherwise late
+            if earliest_report.submission_date <= deadline:
+                on_time_count += 1
+            else:
+                late_count += 1
     
     # Recent reports for dashboard table
     recent_reports = Report.query.order_by(desc(Report.submission_date)).limit(5).all()
@@ -99,11 +128,25 @@ def dashboard():
     employees_with_status = []
     for employee in all_employees:
         last_report = Report.query.filter_by(employee_id=employee.id).order_by(desc(Report.submission_date)).first()
+        
+        # Determine submission status (on time, late, not submitted)
+        status = "not_submitted"
+        if employee.id in submitted_ids:
+            earliest_report = Report.query.filter(
+                Report.employee_id == employee.id,
+                Report.submission_date >= start_of_week
+            ).order_by(Report.submission_date).first()
+            
+            if earliest_report:
+                deadline = start_of_week + timedelta(hours=9)
+                status = "on_time" if earliest_report.submission_date <= deadline else "late"
+        
         employee_data = {
             'id': employee.id,
             'name': employee.name,
             'email': employee.email,
             'has_submitted_this_week': employee.id in submitted_ids,
+            'submission_status': status,
             'last_report': last_report.submission_date if last_report else None
         }
         employees_with_status.append(employee_data)
@@ -115,6 +158,9 @@ def dashboard():
                           report_count=report_count,
                           reports_this_week=reports_this_week,
                           missing_reports=missing_reports,
+                          on_time_count=on_time_count,
+                          late_count=late_count,
+                          not_submitted_count=not_submitted_count,
                           pending_reviews=pending_reviews,
                           recent_reports=recent_reports,
                           recent_activities=recent_activities,
