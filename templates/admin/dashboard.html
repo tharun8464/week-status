@@ -4,18 +4,30 @@
 
 {% block content %}
 <div class="row mb-4">
-    <div class="col-md-12">
+    <div class="col-md-8">
         <h1 class="mb-0">
             <i class="fas fa-tachometer-alt text-primary me-2"></i> Dashboard
         </h1>
-        <p class="text-muted">Welcome to SBS Corp Admin Panel, {{ current_user.name }}</p>
+        <p class="text-muted">Welcome back, {{ current_user.name }}</p>
+    </div>
+    <div class="col-md-4 text-md-end">
+        <div class="d-flex align-items-center justify-content-md-end mt-3 mt-md-0">
+            <span class="text-light me-2">Last login:</span>
+            <span class="text-muted">
+                {% if current_user.last_login %}
+                    {{ current_user.last_login.strftime('%Y-%m-%d %H:%M') }}
+                {% else %}
+                    Never
+                {% endif %}
+            </span>
+        </div>
     </div>
 </div>
 
 <!-- Stats Cards -->
-<div class="row mb-4">
-    <!-- Total Employees Card -->
-    <div class="col-md-6 col-lg-3 mb-4">
+<div class="row">
+    <!-- Active Employees Card -->
+    <div class="col-md-3 mb-4">
         <div class="card h-100 bg-dark border-0 shadow-sm">
             <div class="card-body">
                 <div class="d-flex align-items-center">
@@ -23,59 +35,65 @@
                         <i class="fas fa-users fa-lg"></i>
                     </div>
                     <div>
-                        <h6 class="card-title mb-1 text-muted">Total Employees</h6>
-                        <h2 class="counter-value fw-bold mb-0">{{ employee_count }}</h2>
+                        <h6 class="card-title mb-1 text-muted">Active Employees</h6>
+                        <h2 class="counter-value fw-bold mb-0">{{ stats.active_employees }}</h2>
                     </div>
                 </div>
-                <a href="{{ url_for('admin.employees') }}" class="mt-3 stretched-link text-decoration-none d-block text-end">
-                    <small class="text-primary">View Details <i class="fas fa-chevron-right ms-1"></i></small>
-                </a>
+                <div class="mt-3">
+                    <a href="{{ url_for('admin.employees') }}" class="btn btn-sm btn-outline-light w-100">
+                        <i class="fas fa-user-cog me-1"></i> Manage Employees
+                    </a>
+                </div>
             </div>
         </div>
     </div>
     
-    <!-- Total Reports Card -->
-    <div class="col-md-6 col-lg-3 mb-4">
-        <div class="card h-100 bg-dark border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="icon-box me-3 bg-success bg-opacity-25 text-success">
-                        <i class="fas fa-file-alt fa-lg"></i>
-                    </div>
-                    <div>
-                        <h6 class="card-title mb-1 text-muted">Total Reports</h6>
-                        <h2 class="counter-value fw-bold mb-0">{{ report_count }}</h2>
-                    </div>
-                </div>
-                <a href="{{ url_for('admin.reports') }}" class="mt-3 stretched-link text-decoration-none d-block text-end">
-                    <small class="text-success">View Details <i class="fas fa-chevron-right ms-1"></i></small>
-                </a>
-            </div>
-        </div>
-    </div>
-    
-    <!-- This Week's Submissions Card -->
-    <div class="col-md-6 col-lg-3 mb-4">
+    <!-- Weekly Reports Card -->
+    <div class="col-md-3 mb-4">
         <div class="card h-100 bg-dark border-0 shadow-sm">
             <div class="card-body">
                 <div class="d-flex align-items-center">
                     <div class="icon-box me-3 bg-info bg-opacity-25 text-info">
-                        <i class="fas fa-calendar-check fa-lg"></i>
+                        <i class="fas fa-file-alt fa-lg"></i>
                     </div>
                     <div>
-                        <h6 class="card-title mb-1 text-muted">This Week</h6>
-                        <h2 class="counter-value fw-bold mb-0">{{ reports_this_week }}</h2>
+                        <h6 class="card-title mb-1 text-muted">This Week's Reports</h6>
+                        <h2 class="counter-value fw-bold mb-0">{{ stats.this_weeks_reports }}</h2>
                     </div>
                 </div>
-                <a href="{{ url_for('admin.reports') }}" class="mt-3 stretched-link text-decoration-none d-block text-end">
-                    <small class="text-info">View Details <i class="fas fa-chevron-right ms-1"></i></small>
-                </a>
+                <div class="mt-3">
+                    <a href="{{ url_for('admin.reports') }}" class="btn btn-sm btn-outline-light w-100">
+                        <i class="fas fa-file-import me-1"></i> Manage Reports
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Pending Reviews Card -->
+    <div class="col-md-3 mb-4">
+        <div class="card h-100 bg-dark border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="icon-box me-3 bg-warning bg-opacity-25 text-warning">
+                        <i class="fas fa-hourglass-half fa-lg"></i>
+                    </div>
+                    <div>
+                        <h6 class="card-title mb-1 text-muted">Pending Reviews</h6>
+                        <h2 class="counter-value fw-bold mb-0">{{ stats.pending_reviews }}</h2>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <a href="{{ url_for('admin.reports') }}?status=submitted" class="btn btn-sm btn-outline-light w-100">
+                        <i class="fas fa-check-square me-1"></i> Review Reports
+                    </a>
+                </div>
             </div>
         </div>
     </div>
     
     <!-- Missing Reports Card -->
-    <div class="col-md-6 col-lg-3 mb-4">
+    <div class="col-md-3 mb-4">
         <div class="card h-100 bg-dark border-0 shadow-sm">
             <div class="card-body">
                 <div class="d-flex align-items-center">
@@ -84,120 +102,38 @@
                     </div>
                     <div>
                         <h6 class="card-title mb-1 text-muted">Missing Reports</h6>
-                        <h2 class="counter-value fw-bold mb-0">{{ missing_reports }}</h2>
+                        <h2 class="counter-value fw-bold mb-0">{{ stats.missing_reports }}</h2>
                     </div>
                 </div>
-                <a href="{{ url_for('admin.reports') }}" class="mt-3 stretched-link text-decoration-none d-block text-end">
-                    <small class="text-danger">View Details <i class="fas fa-chevron-right ms-1"></i></small>
-                </a>
+                <div class="mt-3">
+                    <button class="btn btn-sm btn-outline-light w-100" data-bs-toggle="modal" data-bs-target="#sendReminderModal">
+                        <i class="fas fa-envelope me-1"></i> Send Reminders
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Quick Actions and Recent Activities Row -->
-<div class="row mb-4">
-    <!-- Quick Actions -->
-    <div class="col-md-5 mb-4 mb-md-0">
-        <div class="card bg-dark border-0 shadow-sm">
+<!-- Recent Activity and Reports -->
+<div class="row">
+    <!-- Recent Reports -->
+    <div class="col-lg-8 mb-4">
+        <div class="card bg-dark border-0 shadow-sm h-100">
             <div class="card-header bg-dark border-bottom border-secondary">
                 <h5 class="mb-0">
-                    <i class="fas fa-bolt text-warning me-2"></i> Quick Actions
+                    <i class="fas fa-file-alt text-primary me-2"></i> Recent Reports
                 </h5>
-            </div>
-            <div class="card-body p-0">
-                <div class="row g-0">
-                    <div class="col-6 border-end border-bottom border-secondary">
-                        <a href="{{ url_for('admin.add_employee') }}" class="quick-action text-decoration-none">
-                            <i class="fas fa-user-plus text-primary"></i>
-                            <div>Add Employee</div>
-                        </a>
-                    </div>
-                    <div class="col-6 border-bottom border-secondary">
-                        <a href="{{ url_for('admin.reports') }}" class="quick-action text-decoration-none">
-                            <i class="fas fa-search text-success"></i>
-                            <div>Review Reports</div>
-                        </a>
-                    </div>
-                    <div class="col-6 border-end border-secondary">
-                        <a href="#" id="sendRemindersBtn" class="quick-action text-decoration-none">
-                            <i class="fas fa-envelope text-info"></i>
-                            <div>Send Reminders</div>
-                        </a>
-                    </div>
-                    <div class="col-6">
-                        <a href="{{ url_for('admin.activity_logs') }}" class="quick-action text-decoration-none">
-                            <i class="fas fa-history text-warning"></i>
-                            <div>View Activity</div>
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Recent Activities -->
-    <div class="col-md-7">
-        <div class="card bg-dark border-0 shadow-sm">
-            <div class="card-header bg-dark border-bottom border-secondary d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">
-                    <i class="fas fa-history text-info me-2"></i> Recent Activities
-                </h5>
-                <a href="{{ url_for('admin.activity_logs') }}" class="btn btn-sm btn-outline-info">
-                    View All
-                </a>
-            </div>
-            <div class="card-body">
-                {% if recent_activities %}
-                    <div class="timeline">
-                        {% for activity in recent_activities %}
-                        <div class="activity-item">
-                            <h6 class="mb-1">{{ activity.action }}</h6>
-                            <p class="mb-0 text-muted small">
-                                <span class="text-light">{{ activity.user.name }}</span> • 
-                                {{ activity.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}
-                            </p>
-                            {% if activity.details %}
-                            <small class="text-muted">{{ activity.details }}</small>
-                            {% endif %}
-                        </div>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    <div class="text-center py-4">
-                        <div class="text-muted mb-3">
-                            <i class="fas fa-history fa-3x"></i>
-                        </div>
-                        <h6>No recent activity found</h6>
-                        <p class="text-muted small">Activities will be displayed here as they occur.</p>
-                    </div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Recent Reports -->
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="card bg-dark border-0 shadow-sm">
-            <div class="card-header bg-dark border-bottom border-secondary d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">
-                    <i class="fas fa-file-alt text-success me-2"></i> Recent Reports
-                </h5>
-                <a href="{{ url_for('admin.reports') }}" class="btn btn-sm btn-outline-success">
-                    View All
-                </a>
             </div>
             <div class="card-body p-0">
                 {% if recent_reports %}
                 <div class="table-responsive">
-                    <table class="table table-dark table-hover mb-0">
+                    <table class="table table-dark table-hover align-middle mb-0">
                         <thead>
                             <tr>
                                 <th scope="col">Employee</th>
-                                <th scope="col">Report Name</th>
-                                <th scope="col">Submission Date</th>
+                                <th scope="col">Report</th>
+                                <th scope="col">Date</th>
                                 <th scope="col">Status</th>
                                 <th scope="col">Actions</th>
                             </tr>
@@ -214,7 +150,7 @@
                                     </div>
                                 </td>
                                 <td>{{ report.filename }}</td>
-                                <td>{{ report.submission_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td>{{ report.submission_date.strftime('%Y-%m-%d') }}</td>
                                 <td>
                                     {% if report.status == 'submitted' %}
                                     <span class="badge bg-info">Submitted</span>
@@ -225,12 +161,14 @@
                                     {% endif %}
                                 </td>
                                 <td>
-                                    <a href="{{ url_for('admin.view_report', id=report.id) }}" class="btn btn-sm btn-outline-primary me-1">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
-                                    <a href="{{ url_for('admin.review_report', id=report.id) }}" class="btn btn-sm btn-outline-success">
-                                        <i class="fas fa-check"></i>
-                                    </a>
+                                    <div class="btn-group" role="group">
+                                        <a href="{{ url_for('admin.view_report', id=report.id) }}" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="View Report">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{{ url_for('admin.review_report', id=report.id) }}" class="btn btn-sm btn-outline-success" data-bs-toggle="tooltip" title="Review Report">
+                                            <i class="fas fa-check"></i>
+                                        </a>
+                                    </div>
                                 </td>
                             </tr>
                             {% endfor %}
@@ -242,57 +180,238 @@
                     <div class="text-muted mb-3">
                         <i class="fas fa-file-alt fa-3x"></i>
                     </div>
-                    <h6>No recent reports found</h6>
-                    <p class="text-muted small">Reports will be displayed here as they are submitted.</p>
+                    <h5>No recent reports</h5>
+                    <p class="text-muted">Reports will be displayed here as they are submitted.</p>
                 </div>
                 {% endif %}
+            </div>
+            <div class="card-footer bg-dark border-top border-secondary text-end">
+                <a href="{{ url_for('admin.reports') }}" class="btn btn-sm btn-primary">
+                    <i class="fas fa-list me-1"></i> View All Reports
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Activity -->
+    <div class="col-lg-4 mb-4">
+        <div class="card bg-dark border-0 shadow-sm h-100">
+            <div class="card-header bg-dark border-bottom border-secondary">
+                <h5 class="mb-0">
+                    <i class="fas fa-history text-primary me-2"></i> Recent Activity
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                {% if recent_activities %}
+                <div class="list-group list-group-flush">
+                    {% for activity in recent_activities %}
+                    <div class="list-group-item bg-dark border-bottom border-secondary">
+                        <div class="d-flex align-items-center">
+                            <div class="activity-icon me-3">
+                                {% if 'Viewed' in activity.action %}
+                                <i class="fas fa-eye text-info"></i>
+                                {% elif 'Added' in activity.action %}
+                                <i class="fas fa-user-plus text-success"></i>
+                                {% elif 'Updated' in activity.action %}
+                                <i class="fas fa-edit text-warning"></i>
+                                {% elif 'Deleted' in activity.action %}
+                                <i class="fas fa-trash-alt text-danger"></i>
+                                {% elif 'Reviewed' in activity.action %}
+                                <i class="fas fa-check-circle text-success"></i>
+                                {% elif 'Reset' in activity.action %}
+                                <i class="fas fa-key text-warning"></i>
+                                {% else %}
+                                <i class="fas fa-cog text-secondary"></i>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <p class="mb-0">{{ activity.action }}</p>
+                                <small class="text-muted">{{ activity.timestamp.strftime('%Y-%m-%d %H:%M') }}</small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <div class="text-muted mb-3">
+                        <i class="fas fa-history fa-3x"></i>
+                    </div>
+                    <h5>No recent activity</h5>
+                    <p class="text-muted">Your activity will be displayed here.</p>
+                </div>
+                {% endif %}
+            </div>
+            <div class="card-footer bg-dark border-top border-secondary text-end">
+                <a href="{{ url_for('admin.activity_logs') }}" class="btn btn-sm btn-primary">
+                    <i class="fas fa-clipboard-list me-1"></i> View All Logs
+                </a>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Compliance Overview -->
+<!-- Content Row -->
 <div class="row">
-    <div class="col-md-6 mb-4">
+    <!-- Employee Submission Status -->
+    <div class="col-lg-8 mb-4">
         <div class="card bg-dark border-0 shadow-sm">
             <div class="card-header bg-dark border-bottom border-secondary">
                 <h5 class="mb-0">
-                    <i class="fas fa-chart-pie text-primary me-2"></i> Submission Rate
+                    <i class="fas fa-calendar-alt text-primary me-2"></i> This Week's Submission Status
                 </h5>
             </div>
             <div class="card-body">
-                <div class="chart-container position-relative" style="height: 220px;">
-                    <!-- Placeholder for chart -->
-                    <div class="rounded p-3 bg-dark border border-secondary h-100 d-flex align-items-center justify-content-center text-center">
-                        <div>
-                            <i class="fas fa-chart-pie fa-3x text-primary mb-3"></i>
-                            <h6>Submission Rate Chart</h6>
-                            <p class="text-muted small">This will display the report submission compliance rate.</p>
-                        </div>
-                    </div>
+                {% if employees %}
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>Employee</th>
+                                <th>Email</th>
+                                <th>Status</th>
+                                <th>Last Report</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for employee in employees %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-circle me-2" style="width: 30px; height: 30px; font-size: 12px;">
+                                            {{ employee.name[0] }}
+                                        </div>
+                                        <span>{{ employee.name }}</span>
+                                    </div>
+                                </td>
+                                <td>{{ employee.email }}</td>
+                                <td>
+                                    {% if employee.has_submitted_this_week %}
+                                    <span class="badge bg-success">Submitted</span>
+                                    {% else %}
+                                    <span class="badge bg-danger">Missing</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if employee.last_report %}
+                                    {{ employee.last_report.strftime('%Y-%m-%d') }}
+                                    {% else %}
+                                    <span class="text-muted">Never</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <div class="text-muted mb-3">
+                        <i class="fas fa-users fa-3x"></i>
+                    </div>
+                    <h5>No employees found</h5>
+                    <p class="text-muted">Add employees to see their submission status.</p>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
     
-    <div class="col-md-6 mb-4">
+    <!-- Quick Actions -->
+    <div class="col-lg-4 mb-4">
         <div class="card bg-dark border-0 shadow-sm">
             <div class="card-header bg-dark border-bottom border-secondary">
                 <h5 class="mb-0">
-                    <i class="fas fa-user-check text-success me-2"></i> Employee Compliance
+                    <i class="fas fa-bolt text-primary me-2"></i> Quick Actions
                 </h5>
             </div>
             <div class="card-body">
-                <div class="chart-container position-relative" style="height: 220px;">
-                    <!-- Placeholder for chart -->
-                    <div class="rounded p-3 bg-dark border border-secondary h-100 d-flex align-items-center justify-content-center text-center">
-                        <div>
-                            <i class="fas fa-chart-bar fa-3x text-success mb-3"></i>
-                            <h6>Employee Compliance Chart</h6>
-                            <p class="text-muted small">This will display employee compliance statistics.</p>
+                <div class="list-group">
+                    <a href="{{ url_for('admin.add_employee') }}" class="list-group-item list-group-item-action bg-dark border-secondary">
+                        <div class="d-flex align-items-center">
+                            <div class="action-icon bg-success bg-opacity-25 text-success me-3">
+                                <i class="fas fa-user-plus"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0">Add New Employee</h6>
+                                <small class="text-muted">Create a new employee account</small>
+                            </div>
                         </div>
-                    </div>
+                    </a>
+                    <button type="button" class="list-group-item list-group-item-action bg-dark border-secondary" data-bs-toggle="modal" data-bs-target="#sendReminderModal">
+                        <div class="d-flex align-items-center">
+                            <div class="action-icon bg-info bg-opacity-25 text-info me-3">
+                                <i class="fas fa-envelope"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0">Send Reminders</h6>
+                                <small class="text-muted">Notify employees who haven't submitted</small>
+                            </div>
+                        </div>
+                    </button>
+                    <a href="{{ url_for('admin.reports') }}" class="list-group-item list-group-item-action bg-dark border-secondary">
+                        <div class="d-flex align-items-center">
+                            <div class="action-icon bg-warning bg-opacity-25 text-warning me-3">
+                                <i class="fas fa-check-square"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0">Review Reports</h6>
+                                <small class="text-muted">Review pending report submissions</small>
+                            </div>
+                        </div>
+                    </a>
+                    <a href="{{ url_for('admin.profile') }}" class="list-group-item list-group-item-action bg-dark border-secondary">
+                        <div class="d-flex align-items-center">
+                            <div class="action-icon bg-primary bg-opacity-25 text-primary me-3">
+                                <i class="fas fa-user-cog"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0">Manage Profile</h6>
+                                <small class="text-muted">Update your admin profile and security</small>
+                            </div>
+                        </div>
+                    </a>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Send Reminder Modal -->
+<div class="modal fade" id="sendReminderModal" tabindex="-1" aria-labelledby="sendReminderModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark border border-secondary">
+            <div class="modal-header border-bottom border-secondary">
+                <h5 class="modal-title" id="sendReminderModalLabel">
+                    <i class="fas fa-envelope text-info me-2"></i>
+                    Send Reminders
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Send reminder emails to employees who haven't submitted their reports this week.</p>
+                
+                <div class="alert alert-info" role="alert">
+                    <i class="fas fa-info-circle me-2"></i>
+                    {{ stats.missing_reports }} employees haven't submitted their weekly reports.
+                </div>
+                
+                <form id="reminderForm" action="{{ url_for('admin.send_reminders') }}" method="POST">
+                    <div class="mb-3">
+                        <label for="reminderSubject" class="form-label">Email Subject</label>
+                        <input type="text" class="form-control bg-dark text-light border-secondary" id="reminderSubject" name="subject" value="[REMINDER] Weekly Status Report Due">
+                    </div>
+                    <div class="mb-3">
+                        <label for="reminderMessage" class="form-label">Additional Message (Optional)</label>
+                        <textarea class="form-control bg-dark text-light border-secondary" id="reminderMessage" name="message" rows="3" placeholder="Enter any additional information for the reminder email..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-top border-secondary">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" form="reminderForm" class="btn btn-info">
+                    <i class="fas fa-paper-plane me-1"></i> Send Reminders
+                </button>
             </div>
         </div>
     </div>
@@ -302,25 +421,49 @@
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Send reminders button
-    const sendRemindersBtn = document.getElementById('sendRemindersBtn');
-    if (sendRemindersBtn) {
-        sendRemindersBtn.addEventListener('click', function(e) {
-            e.preventDefault();
+    // Initialize tooltips
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+    
+    // Animate dashboard cards with staggered delay
+    const cards = document.querySelectorAll('.card');
+    cards.forEach((card, index) => {
+        setTimeout(() => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
             
-            if (confirm('Are you sure you want to send reminders to all employees who have not submitted their reports this week?')) {
-                this.innerHTML = '<i class="fas fa-spinner fa-spin text-info"></i><div>Sending...</div>';
-                this.style.pointerEvents = 'none';
-                
-                // Simulate sending reminders (would be an AJAX call in production)
-                setTimeout(() => {
-                    alert('Reminders sent successfully to employees with missing reports.');
-                    this.innerHTML = '<i class="fas fa-envelope text-info"></i><div>Send Reminders</div>';
-                    this.style.pointerEvents = '';
-                }, 2000);
-            }
-        });
-    }
+            setTimeout(() => {
+                card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, 50);
+        }, 100 * index);
+    });
+    
+    // Animate counter values
+    const counterElements = document.querySelectorAll('.counter-value');
+    counterElements.forEach((counter, index) => {
+        const targetValue = parseInt(counter.textContent.trim());
+        if (!isNaN(targetValue)) {
+            counter.textContent = '0';
+            
+            setTimeout(() => {
+                let currentValue = 0;
+                const increment = Math.max(1, Math.ceil(targetValue / 20));
+                const interval = setInterval(() => {
+                    currentValue += increment;
+                    counter.textContent = currentValue;
+                    
+                    if (currentValue >= targetValue) {
+                        counter.textContent = targetValue;
+                        clearInterval(interval);
+                    }
+                }, 50);
+            }, 300 + (index * 100));
+        }
+    });
 });
 </script>
 {% endblock %}

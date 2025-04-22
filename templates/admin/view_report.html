@@ -1,0 +1,217 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}View Report - SBS Corp Admin{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1 class="mb-0">
+            <i class="fas fa-file-alt text-primary me-2"></i> View Report
+        </h1>
+        <p class="text-muted">{{ report.filename }}</p>
+    </div>
+    <div class="col-md-4 text-md-end d-flex align-items-center justify-content-md-end mt-3 mt-md-0">
+        <a href="{{ url_for('admin.reports') }}" class="btn btn-outline-secondary me-2">
+            <i class="fas fa-arrow-left me-1"></i> Back to Reports
+        </a>
+        <a href="{{ url_for('admin.review_report', id=report.id) }}" class="btn btn-primary">
+            <i class="fas fa-check-circle me-1"></i> Review Report
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-4 mb-4">
+        <div class="card bg-dark border-0 shadow-sm h-100">
+            <div class="card-header bg-dark border-bottom border-secondary">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle text-primary me-2"></i> Report Details
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <p class="text-muted mb-1">Report ID</p>
+                    <h6>{{ report.id }}</h6>
+                </div>
+                
+                <div class="mb-3">
+                    <p class="text-muted mb-1">Status</p>
+                    <h6>
+                        {% if report.status == 'submitted' %}
+                        <span class="badge bg-info">Submitted</span>
+                        {% elif report.status == 'approved' %}
+                        <span class="badge bg-success">Approved</span>
+                        {% elif report.status == 'rejected' %}
+                        <span class="badge bg-danger">Rejected</span>
+                        {% endif %}
+                    </h6>
+                </div>
+                
+                <div class="mb-3">
+                    <p class="text-muted mb-1">Submission Date</p>
+                    <h6>{{ report.submission_date.strftime('%Y-%m-%d %H:%M') }}</h6>
+                </div>
+
+                {% if report.review_date %}
+                <div class="mb-3">
+                    <p class="text-muted mb-1">Review Date</p>
+                    <h6>{{ report.review_date.strftime('%Y-%m-%d %H:%M') }}</h6>
+                </div>
+                {% endif %}
+                
+                {% if report.reviewer %}
+                <div class="mb-3">
+                    <p class="text-muted mb-1">Reviewed By</p>
+                    <h6>{{ report.reviewer.name }}</h6>
+                </div>
+                {% endif %}
+                
+                {% if report.feedback %}
+                <div class="mb-3">
+                    <p class="text-muted mb-1">Feedback</p>
+                    <div class="p-3 bg-dark border border-secondary rounded">
+                        {{ report.feedback }}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-8 mb-4">
+        <div class="card bg-dark border-0 shadow-sm h-100">
+            <div class="card-header bg-dark border-bottom border-secondary">
+                <h5 class="mb-0">
+                    <i class="fas fa-user text-primary me-2"></i> Employee Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-2">
+                        <div class="avatar-circle mx-auto" style="width: 60px; height: 60px; font-size: 24px;">
+                            {{ report.user.name[0] }}
+                        </div>
+                    </div>
+                    <div class="col-md-10">
+                        <h4>{{ report.user.name }}</h4>
+                        <p class="mb-1"><i class="fas fa-envelope text-muted me-2"></i> {{ report.user.email }}</p>
+                        <p class="mb-1"><i class="fas fa-calendar-alt text-muted me-2"></i> Joined: {{ report.user.created_at.strftime('%Y-%m-%d') }}</p>
+                        <p class="mb-1">
+                            <i class="fas fa-file-alt text-muted me-2"></i> 
+                            Total reports: {{ report.user.reports|length }}
+                        </p>
+                    </div>
+                </div>
+                
+                <hr class="border-secondary my-4">
+                
+                <h5 class="mb-3"><i class="fas fa-file-download text-primary me-2"></i> Report File</h5>
+                
+                <div class="text-center p-5 border border-secondary rounded mb-4">
+                    <i class="fas fa-file-pdf fa-4x text-danger mb-3"></i>
+                    <h5>{{ report.filename }}</h5>
+                    <p class="text-muted">The report file is stored in OneDrive.</p>
+                    <a href="{{ url_for('admin.download_report', id=report.id) }}" class="btn btn-primary mt-3">
+                        <i class="fas fa-download me-1"></i> Download Report
+                    </a>
+                </div>
+            </div>
+            <div class="card-footer bg-dark border-top border-secondary text-end">
+                <a href="{{ url_for('admin.review_report', id=report.id) }}" class="btn btn-primary">
+                    <i class="fas fa-check-circle me-1"></i> Review Report
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if other_reports %}
+<div class="row">
+    <div class="col-12">
+        <div class="card bg-dark border-0 shadow-sm">
+            <div class="card-header bg-dark border-bottom border-secondary">
+                <h5 class="mb-0">
+                    <i class="fas fa-history text-primary me-2"></i> Other Reports by {{ report.user.name }}
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th scope="col">Report Name</th>
+                                <th scope="col">Submission Date</th>
+                                <th scope="col">Status</th>
+                                <th scope="col">Review Date</th>
+                                <th scope="col">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for other_report in other_reports %}
+                            <tr class="{{ 'table-active' if other_report.id == report.id }}">
+                                <td>{{ other_report.filename }}</td>
+                                <td>{{ other_report.submission_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td>
+                                    {% if other_report.status == 'submitted' %}
+                                    <span class="badge bg-info">Submitted</span>
+                                    {% elif other_report.status == 'approved' %}
+                                    <span class="badge bg-success">Approved</span>
+                                    {% elif other_report.status == 'rejected' %}
+                                    <span class="badge bg-danger">Rejected</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if other_report.review_date %}
+                                    {{ other_report.review_date.strftime('%Y-%m-%d %H:%M') }}
+                                    {% else %}
+                                    <span class="text-muted">Not reviewed</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="{{ url_for('admin.view_report', id=other_report.id) }}" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="View Report">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{{ url_for('admin.review_report', id=other_report.id) }}" class="btn btn-sm btn-outline-success" data-bs-toggle="tooltip" title="Review Report">
+                                            <i class="fas fa-check"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize tooltips
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+    
+    // Animate cards with staggered delay
+    const cards = document.querySelectorAll('.card');
+    cards.forEach((card, index) => {
+        setTimeout(() => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            
+            setTimeout(() => {
+                card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, 50);
+        }, 100 * index);
+    });
+});
+</script>
+{% endblock %}

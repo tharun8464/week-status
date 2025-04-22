@@ -4,86 +4,187 @@
 
 {% block content %}
 <div class="row mb-4">
-    <div class="col-md-12">
+    <div class="col-md-8">
         <h1 class="mb-0">
-            <i class="fas fa-file-alt text-primary me-2"></i> Reports Management
+            <i class="fas fa-file-alt text-primary me-2"></i> Reports
         </h1>
+        <p class="text-muted">Manage employee report submissions</p>
     </div>
 </div>
 
-<div class="card bg-dark border-0 shadow-sm">
-    <div class="card-header bg-dark border-bottom border-secondary">
-        <div class="d-flex justify-content-between align-items-center">
-            <h4 class="mb-0">All Reports</h4>
-            
-            <div class="d-flex">
-                <div class="input-group input-group-sm me-2" style="width: 200px;">
-                    <select id="statusFilter" class="form-select bg-dark text-light border-secondary">
-                        <option value="all">All Status</option>
-                        <option value="submitted">Submitted</option>
-                        <option value="approved">Approved</option>
-                        <option value="rejected">Rejected</option>
-                    </select>
-                </div>
-                
-                <div class="input-group input-group-sm" style="width: 250px;">
-                    <input type="text" id="reportSearch" class="form-control bg-dark text-light border-secondary" placeholder="Search reports...">
-                    <span class="input-group-text bg-dark text-light border-secondary">
-                        <i class="fas fa-search"></i>
-                    </span>
+<!-- Search and Filter Bar -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card bg-dark border-0 shadow-sm">
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <span class="input-group-text bg-dark text-light border-secondary">
+                                <i class="fas fa-search"></i>
+                            </span>
+                            <input type="text" class="form-control bg-dark text-light border-secondary" id="reportSearch" placeholder="Search by employee or filename...">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select bg-dark text-light border-secondary" id="statusFilter">
+                            <option value="all">All Status</option>
+                            <option value="submitted">Submitted</option>
+                            <option value="approved">Approved</option>
+                            <option value="rejected">Rejected</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select bg-dark text-light border-secondary" id="sortBy">
+                            <option value="recent">Most Recent</option>
+                            <option value="oldest">Oldest First</option>
+                            <option value="employee">By Employee</option>
+                        </select>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-dark table-hover align-middle mb-0" id="reportsTable">
-                <thead>
-                    <tr>
-                        <th>Employee</th>
-                        <th>Filename</th>
-                        <th>Date Submitted</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% if reports %}
-                        {% for report in reports %}
-                        <tr class="report-row" data-employee="{{ report.name|lower }}" data-filename="{{ report.filename|lower }}" data-status="{{ report.status }}">
-                            <td>{{ report.name }}</td>
-                            <td class="text-truncate" style="max-width: 250px;">
-                                <i class="far fa-file-pdf text-danger me-2"></i>
-                                {{ report.filename }}
-                            </td>
-                            <td>{{ report.submission_date.strftime('%b %d, %Y %H:%M') }}</td>
-                            <td>
-                                {% if report.status == 'submitted' %}
-                                <span class="badge bg-info">Submitted</span>
-                                {% elif report.status == 'approved' %}
-                                <span class="badge bg-success">Approved</span>
-                                {% elif report.status == 'rejected' %}
-                                <span class="badge bg-danger">Rejected</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <a href="{{ url_for('admin.view_report', id=report.id) }}" class="btn btn-sm btn-outline-primary">
-                                    <i class="fas fa-eye me-1"></i> View
-                                </a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    {% else %}
-                        <tr>
-                            <td colspan="5" class="text-center py-4">
-                                <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
-                                <h5>No reports found</h5>
-                                <p class="text-muted">No reports have been submitted yet</p>
-                            </td>
-                        </tr>
-                    {% endif %}
-                </tbody>
-            </table>
+</div>
+
+<!-- Summary Cards -->
+<div class="row mb-4">
+    <!-- Total Reports Card -->
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 bg-dark border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="icon-box me-3 bg-primary bg-opacity-25 text-primary">
+                        <i class="fas fa-file-alt fa-lg"></i>
+                    </div>
+                    <div>
+                        <h6 class="card-title mb-1 text-muted">Total Reports</h6>
+                        <h2 class="counter-value fw-bold mb-0">{{ reports|length }}</h2>
+                    </div>
+                </div>
+                <div class="mt-3 d-flex justify-content-between text-muted small">
+                    <span>From {{ employees_count }} employees</span>
+                    <span id="visibleReportsCount">Showing all reports</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Status Breakdown -->
+    <div class="col-md-8 mb-4">
+        <div class="card h-100 bg-dark border-0 shadow-sm">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 border-end border-secondary">
+                        <div class="text-center">
+                            <div class="icon-box mx-auto mb-2 bg-info bg-opacity-25 text-info">
+                                <i class="fas fa-file-upload fa-lg"></i>
+                            </div>
+                            <h6 class="text-muted">Submitted</h6>
+                            <h2 class="counter-value">{{ submitted_count }}</h2>
+                        </div>
+                    </div>
+                    <div class="col-md-4 border-end border-secondary">
+                        <div class="text-center">
+                            <div class="icon-box mx-auto mb-2 bg-success bg-opacity-25 text-success">
+                                <i class="fas fa-check-circle fa-lg"></i>
+                            </div>
+                            <h6 class="text-muted">Approved</h6>
+                            <h2 class="counter-value">{{ approved_count }}</h2>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center">
+                            <div class="icon-box mx-auto mb-2 bg-danger bg-opacity-25 text-danger">
+                                <i class="fas fa-times-circle fa-lg"></i>
+                            </div>
+                            <h6 class="text-muted">Rejected</h6>
+                            <h2 class="counter-value">{{ rejected_count }}</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reports List -->
+<div class="row">
+    <div class="col-12">
+        <div class="card bg-dark border-0 shadow-sm">
+            <div class="card-header bg-dark border-bottom border-secondary">
+                <h5 class="mb-0">
+                    <i class="fas fa-list text-primary me-2"></i> All Reports
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                {% if reports %}
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover align-middle mb-0" id="reportTable">
+                        <thead>
+                            <tr>
+                                <th scope="col">Employee</th>
+                                <th scope="col">Report Name</th>
+                                <th scope="col">Submission Date</th>
+                                <th scope="col">Status</th>
+                                <th scope="col">Review Date</th>
+                                <th scope="col">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for report in reports %}
+                            <tr data-employee="{{ report.user.name.lower() }}" data-status="{{ report.status }}">
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-circle me-2" style="width: 30px; height: 30px; font-size: 12px;">
+                                            {{ report.user.name[0] }}
+                                        </div>
+                                        <span>{{ report.user.name }}</span>
+                                    </div>
+                                </td>
+                                <td>{{ report.filename }}</td>
+                                <td>{{ report.submission_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td>
+                                    {% if report.status == 'submitted' %}
+                                    <span class="badge bg-info">Submitted</span>
+                                    {% elif report.status == 'approved' %}
+                                    <span class="badge bg-success">Approved</span>
+                                    {% elif report.status == 'rejected' %}
+                                    <span class="badge bg-danger">Rejected</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if report.review_date %}
+                                    {{ report.review_date.strftime('%Y-%m-%d %H:%M') }}
+                                    {% else %}
+                                    <span class="text-muted">Not reviewed</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="{{ url_for('admin.view_report', id=report.id) }}" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="View Report">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{{ url_for('admin.review_report', id=report.id) }}" class="btn btn-sm btn-outline-success" data-bs-toggle="tooltip" title="Review Report">
+                                            <i class="fas fa-check"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <div class="text-muted mb-3">
+                        <i class="fas fa-file-alt fa-3x"></i>
+                    </div>
+                    <h5>No reports found</h5>
+                    <p class="text-muted">Reports will be displayed here as they are submitted.</p>
+                </div>
+                {% endif %}
+            </div>
         </div>
     </div>
 </div>
@@ -92,46 +193,114 @@
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Report search and filter functionality
+    // Initialize tooltips
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+    
+    // Filter functionality
     const searchInput = document.getElementById('reportSearch');
     const statusFilter = document.getElementById('statusFilter');
-    const reportRows = document.querySelectorAll('.report-row');
+    const sortBy = document.getElementById('sortBy');
+    const visibleReportsCount = document.getElementById('visibleReportsCount');
     
-    function filterReports() {
+    function filterTable() {
         const searchTerm = searchInput.value.toLowerCase();
-        const statusValue = statusFilter.value;
+        const status = statusFilter.value;
+        const table = document.getElementById('reportTable');
+        const rows = table.querySelectorAll('tbody tr');
         
-        reportRows.forEach(row => {
+        let visibleCount = 0;
+        
+        rows.forEach(row => {
             const employee = row.dataset.employee;
-            const filename = row.dataset.filename;
-            const status = row.dataset.status;
+            const filename = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+            const rowStatus = row.dataset.status;
             
-            const matchesSearch = employee.includes(searchTerm) || filename.includes(searchTerm);
-            const matchesStatus = statusValue === 'all' || status === statusValue;
+            const nameMatch = employee.includes(searchTerm);
+            const filenameMatch = filename.includes(searchTerm);
+            const statusMatch = status === 'all' || rowStatus === status;
             
-            if (matchesSearch && matchesStatus) {
+            if ((nameMatch || filenameMatch) && statusMatch) {
                 row.style.display = '';
+                visibleCount++;
             } else {
                 row.style.display = 'none';
             }
         });
+        
+        // Update visible count
+        visibleReportsCount.textContent = visibleCount === rows.length ? 
+            'Showing all reports' : 
+            `Showing ${visibleCount} of ${rows.length}`;
     }
     
-    searchInput.addEventListener('keyup', filterReports);
-    statusFilter.addEventListener('change', filterReports);
+    searchInput.addEventListener('keyup', filterTable);
+    statusFilter.addEventListener('change', filterTable);
     
-    // Add animations to the table rows
-    reportRows.forEach((row, index) => {
+    // Sorting functionality
+    sortBy.addEventListener('change', function() {
+        const value = this.value;
+        const table = document.getElementById('reportTable');
+        const tbody = table.querySelector('tbody');
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+        
+        rows.sort((a, b) => {
+            if (value === 'employee') {
+                const employeeA = a.dataset.employee;
+                const employeeB = b.dataset.employee;
+                return employeeA.localeCompare(employeeB);
+            } else if (value === 'recent' || value === 'oldest') {
+                const dateA = new Date(a.querySelector('td:nth-child(3)').textContent);
+                const dateB = new Date(b.querySelector('td:nth-child(3)').textContent);
+                
+                return value === 'recent' ? dateB - dateA : dateA - dateB;
+            }
+            
+            return 0;
+        });
+        
+        // Clear tbody and append sorted rows
+        rows.forEach(row => tbody.appendChild(row));
+    });
+    
+    // Animate cards with staggered delay
+    const cards = document.querySelectorAll('.card');
+    cards.forEach((card, index) => {
         setTimeout(() => {
-            row.style.opacity = '0';
-            row.style.transform = 'translateY(20px)';
-            row.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
             
             setTimeout(() => {
-                row.style.opacity = '1';
-                row.style.transform = 'translateY(0)';
+                card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
             }, 50);
         }, 100 * index);
+    });
+    
+    // Animate counter values
+    const counterElements = document.querySelectorAll('.counter-value');
+    counterElements.forEach((counter, index) => {
+        const targetValue = parseInt(counter.textContent.trim());
+        if (!isNaN(targetValue)) {
+            counter.textContent = '0';
+            
+            setTimeout(() => {
+                let currentValue = 0;
+                const increment = Math.max(1, Math.ceil(targetValue / 20));
+                const interval = setInterval(() => {
+                    currentValue += increment;
+                    counter.textContent = currentValue;
+                    
+                    if (currentValue >= targetValue) {
+                        counter.textContent = targetValue;
+                        clearInterval(interval);
+                    }
+                }, 50);
+            }, 300 + (index * 100));
+        }
     });
 });
 </script>

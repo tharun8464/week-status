@@ -230,20 +230,34 @@ def login():
     
     try:
         # Find the user by email
-        employee = User.query.filter_by(email=email).first()
+        user = User.query.filter_by(email=email).first()
         
-        if not employee:
+        if not user:
             logging.debug(f"No user found with email: {email}")
             flash("Email not registered", "danger")
             return redirect(url_for('main.index'))
         
         # Check password
-        if employee.password == password:
-            session['employee_id'] = str(employee.id)
-            session['employee_name'] = employee.name
-            session['folder_id'] = employee.folder_id
-            flash(f"Welcome back, {employee.name}!", "success")
-            return redirect(url_for('main.dashboard'))
+        if user.password == password:
+            # Use Flask-Login to login the user
+            login_user(user)
+            
+            # Set session variables for backward compatibility
+            session['employee_id'] = str(user.id)
+            session['employee_name'] = user.name
+            session['folder_id'] = user.folder_id
+            
+            # Record last login time
+            user.last_login = datetime.now()
+            db.session.commit()
+            
+            flash(f"Welcome back, {user.name}!", "success")
+            
+            # Redirect to admin dashboard if admin, otherwise employee dashboard
+            if user.is_admin():
+                return redirect(url_for('admin.dashboard'))
+            else:
+                return redirect(url_for('main.dashboard'))
         else:
             logging.debug("Password mismatch")
             flash("Invalid password", "danger")

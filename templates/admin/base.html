@@ -3,132 +3,391 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}SBS Corp Admin Panel{% endblock %}</title>
+    <title>{% block title %}SBS Corp Admin{% endblock %}</title>
     
     <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css">
+    <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
     
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
     
     <!-- Custom Admin CSS -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    <style>
+        :root {
+            --sidebar-width: 250px;
+            --header-height: 60px;
+            --animation-speed: 0.3s;
+        }
+        
+        body {
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-color: var(--bs-dark);
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all var(--animation-speed);
+            background-color: var(--bs-dark);
+            overflow-y: auto;
+        }
+        
+        .sidebar.collapsed {
+            width: 70px;
+        }
+        
+        .sidebar-logo {
+            padding: 1rem;
+            height: var(--header-height);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .sidebar-logo-text {
+            display: block;
+            transition: opacity var(--animation-speed);
+            white-space: nowrap;
+            overflow: hidden;
+        }
+        
+        .sidebar.collapsed .sidebar-logo-text {
+            opacity: 0;
+            width: 0;
+        }
+        
+        .sidebar-nav {
+            padding: 1rem 0;
+        }
+        
+        .nav-item {
+            margin: 0.25rem 0;
+        }
+        
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            border-radius: 0.25rem;
+            transition: all var(--animation-speed);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .nav-link:hover, .nav-link.active {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .nav-link::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 4px;
+            background-color: var(--bs-primary);
+            opacity: 0;
+            transition: opacity var(--animation-speed);
+        }
+        
+        .nav-link.active::before {
+            opacity: 1;
+        }
+        
+        .nav-link.active {
+            background-color: rgba(13, 110, 253, 0.1);
+        }
+        
+        .nav-icon {
+            font-size: 1.1rem;
+            width: 2rem;
+            text-align: center;
+            transition: all var(--animation-speed);
+        }
+        
+        .nav-text {
+            margin-left: 0.5rem;
+            transition: opacity var(--animation-speed);
+            white-space: nowrap;
+            overflow: hidden;
+        }
+        
+        .sidebar.collapsed .nav-text {
+            opacity: 0;
+            width: 0;
+        }
+        
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 2rem;
+            min-height: 100vh;
+            transition: margin-left var(--animation-speed);
+        }
+        
+        .sidebar.collapsed + .main-content {
+            margin-left: 70px;
+        }
+        
+        /* Top Navbar */
+        .top-navbar {
+            height: var(--header-height);
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 0 1rem;
+            background-color: var(--bs-dark);
+            margin-bottom: 2rem;
+        }
+        
+        .sidebar-toggle {
+            cursor: pointer;
+            font-size: 1.25rem;
+        }
+        
+        /* Card enhancements */
+        .card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            margin-bottom: 1.5rem;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+        
+        /* Utility classes */
+        .avatar-circle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: rgba(13, 110, 253, 0.2);
+            color: var(--bs-primary);
+            font-weight: 600;
+        }
+        
+        .icon-box {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            font-size: 1.2rem;
+        }
+        
+        .action-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        
+        /* Responsive */
+        @media (max-width: 992px) {
+            .sidebar {
+                left: -250px;
+            }
+            
+            .sidebar.collapsed {
+                left: 0;
+                width: var(--sidebar-width);
+            }
+            
+            .sidebar.collapsed .sidebar-logo-text,
+            .sidebar.collapsed .nav-text {
+                opacity: 1;
+                width: auto;
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .sidebar.collapsed + .main-content {
+                margin-left: 0;
+            }
+        }
+    </style>
     
-    {% block head %}{% endblock %}
+    {% block styles %}{% endblock %}
 </head>
 <body>
-    <div class="container-fluid">
-        <div class="row vh-100">
-            <!-- Sidebar -->
-            <div class="col-md-3 col-lg-2 d-md-block bg-dark sidebar collapse px-0">
-                <div class="position-sticky">
-                    <div class="py-4 text-center">
-                        <h4 class="text-primary fw-bold mb-0">
-                            <i class="fas fa-shield-alt me-2"></i> SBS Corp
-                        </h4>
-                        <div class="text-muted small">Admin Panel</div>
-                    </div>
-                    
-                    <hr class="border-secondary my-0">
-                    
-                    <ul class="nav flex-column mt-3">
-                        <li class="nav-item">
-                            <a class="nav-link sidebar-link py-3 px-4 {% if request.endpoint == 'admin.dashboard' %}active{% endif %}" href="{{ url_for('admin.dashboard') }}">
-                                <i class="fas fa-tachometer-alt me-2"></i> Dashboard
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link sidebar-link py-3 px-4 {% if request.endpoint == 'admin.employees' %}active{% endif %}" href="{{ url_for('admin.employees') }}">
-                                <i class="fas fa-users me-2"></i> Employees
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link sidebar-link py-3 px-4 {% if request.endpoint == 'admin.reports' %}active{% endif %}" href="{{ url_for('admin.reports') }}">
-                                <i class="fas fa-file-alt me-2"></i> Reports
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link sidebar-link py-3 px-4 {% if request.endpoint == 'admin.activity_logs' %}active{% endif %}" href="{{ url_for('admin.activity_logs') }}">
-                                <i class="fas fa-history me-2"></i> Activity Logs
-                            </a>
-                        </li>
-                        <li class="nav-item mt-3">
-                            <hr class="border-secondary my-2">
-                            <a class="nav-link sidebar-link py-3 px-4 {% if request.endpoint == 'admin.profile' %}active{% endif %}" href="{{ url_for('admin.profile') }}">
-                                <i class="fas fa-user-shield me-2"></i> Profile
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link sidebar-link py-3 px-4 text-danger" href="{{ url_for('main.logout') }}">
-                                <i class="fas fa-sign-out-alt me-2"></i> Logout
-                            </a>
-                        </li>
-                    </ul>
-                </div>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-logo">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-chart-line text-primary me-2"></i>
+                <span class="sidebar-logo-text fw-bold">SBS Corp Admin</span>
             </div>
-            
-            <!-- Main Content -->
-            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
-                <!-- Top Navbar -->
-                <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4 p-0">
-                    <div class="container-fluid px-0">
-                        <button class="navbar-toggler d-md-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target=".sidebar" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
-                            <span class="navbar-toggler-icon"></span>
-                        </button>
-                        
-                        <div class="d-flex align-items-center ms-auto">
-                            <div class="dropdown">
-                                <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <div class="avatar-circle me-2">{{ current_user.name[0] }}</div>
-                                    <span class="d-none d-md-inline">{{ current_user.name }}</span>
-                                </a>
-                                <ul class="dropdown-menu dropdown-menu-end text-small shadow" aria-labelledby="dropdownUser1">
-                                    <li><a class="dropdown-item" href="{{ url_for('admin.profile') }}"><i class="fas fa-user-shield me-2"></i> Profile</a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item text-danger" href="{{ url_for('main.logout') }}"><i class="fas fa-sign-out-alt me-2"></i> Sign out</a></li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </nav>
-                
-                <!-- Alert Messages -->
-                {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                        {% for category, message in messages %}
-                            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                                {{ message }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                            </div>
-                        {% endfor %}
-                    {% endif %}
-                {% endwith %}
-                
-                <!-- Main Content -->
-                <div class="content-wrapper">
-                    {% block content %}{% endblock %}
-                </div>
-                
-                <!-- Footer -->
-                <footer class="footer mt-5 py-3 border-top border-secondary text-muted">
-                    <div class="container-fluid">
-                        <div class="row">
-                            <div class="col-12 text-center">
-                                <p class="mb-0">&copy; {{ now.year }} SBS Corp. All rights reserved.</p>
-                                <small>Weekly Status Report System - Admin Panel</small>
-                            </div>
-                        </div>
-                    </div>
-                </footer>
-            </main>
+            <div class="sidebar-toggle d-none d-lg-block" id="sidebarToggle">
+                <i class="fas fa-chevron-left"></i>
+            </div>
+        </div>
+        <div class="sidebar-nav">
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link {{ 'active' if request.endpoint == 'admin.dashboard' }}" href="{{ url_for('admin.dashboard') }}">
+                        <span class="nav-icon"><i class="fas fa-tachometer-alt"></i></span>
+                        <span class="nav-text">Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ 'active' if request.endpoint == 'admin.employees' or request.endpoint == 'admin.add_employee' or request.endpoint == 'admin.edit_employee' }}" href="{{ url_for('admin.employees') }}">
+                        <span class="nav-icon"><i class="fas fa-users"></i></span>
+                        <span class="nav-text">Employees</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ 'active' if request.endpoint == 'admin.reports' or request.endpoint == 'admin.view_report' or request.endpoint == 'admin.review_report' }}" href="{{ url_for('admin.reports') }}">
+                        <span class="nav-icon"><i class="fas fa-file-alt"></i></span>
+                        <span class="nav-text">Reports</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ 'active' if request.endpoint == 'admin.activity_logs' }}" href="{{ url_for('admin.activity_logs') }}">
+                        <span class="nav-icon"><i class="fas fa-history"></i></span>
+                        <span class="nav-text">Activity Logs</span>
+                    </a>
+                </li>
+                <li class="nav-item mt-auto">
+                    <a class="nav-link {{ 'active' if request.endpoint == 'admin.profile' }}" href="{{ url_for('admin.profile') }}">
+                        <span class="nav-icon"><i class="fas fa-user-cog"></i></span>
+                        <span class="nav-text">My Profile</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('main.logout') }}">
+                        <span class="nav-icon"><i class="fas fa-sign-out-alt"></i></span>
+                        <span class="nav-text">Logout</span>
+                    </a>
+                </li>
+            </ul>
         </div>
     </div>
     
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Custom Admin JS -->
-    <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Top Navbar -->
+        <div class="top-navbar">
+            <div class="d-flex justify-content-between w-100 align-items-center">
+                <div class="d-flex align-items-center">
+                    <div class="sidebar-toggle d-block d-lg-none me-3" id="mobileSidebarToggle">
+                        <i class="fas fa-bars"></i>
+                    </div>
+                    <div class="d-none d-md-block">
+                        <h5 class="mb-0">{{ now.strftime('%A, %B %d, %Y') }}</h5>
+                        <small class="text-muted">{{ now.strftime('%I:%M %p') }}</small>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center">
+                    <div class="dropdown">
+                        <a class="text-light text-decoration-none dropdown-toggle d-flex align-items-center" href="#" role="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <div class="avatar-circle me-2">
+                                {{ current_user.name[0] }}
+                            </div>
+                            <div class="d-none d-md-block">
+                                <div>{{ current_user.name }}</div>
+                                <div class="text-muted small">Administrator</div>
+                            </div>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                            <li><a class="dropdown-item" href="{{ url_for('admin.profile') }}">
+                                <i class="fas fa-user-cog me-2"></i> My Profile
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('main.logout') }}">
+                                <i class="fas fa-sign-out-alt me-2"></i> Logout
+                            </a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        <!-- Content -->
+        {% block content %}{% endblock %}
+    </div>
     
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Admin JS -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Sidebar Toggle
+            const sidebar = document.getElementById('sidebar');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const mobileSidebarToggle = document.getElementById('mobileSidebarToggle');
+            
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('collapsed');
+                    
+                    if (sidebar.classList.contains('collapsed')) {
+                        sidebarToggle.innerHTML = '<i class="fas fa-chevron-right"></i>';
+                    } else {
+                        sidebarToggle.innerHTML = '<i class="fas fa-chevron-left"></i>';
+                    }
+                    
+                    // Save state to localStorage
+                    localStorage.setItem('sidebar-collapsed', sidebar.classList.contains('collapsed'));
+                });
+            }
+            
+            if (mobileSidebarToggle) {
+                mobileSidebarToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('collapsed');
+                });
+            }
+            
+            // Restore sidebar state
+            const sidebarState = localStorage.getItem('sidebar-collapsed');
+            if (sidebarState === 'true') {
+                sidebar.classList.add('collapsed');
+                if (sidebarToggle) {
+                    sidebarToggle.innerHTML = '<i class="fas fa-chevron-right"></i>';
+                }
+            }
+            
+            // Auto-hide flash messages after 5 seconds
+            const flashMessages = document.querySelectorAll('.alert');
+            flashMessages.forEach(message => {
+                setTimeout(function() {
+                    const alert = bootstrap.Alert.getOrCreateInstance(message);
+                    alert.close();
+                }, 5000);
+            });
+        });
+    </script>
+    
+    <!-- Extra JavaScript -->
     {% block scripts %}{% endblock %}
 </body>
 </html>
