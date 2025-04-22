@@ -18,7 +18,7 @@
                         </div>
                     </div>
                     <div>
-                        <a href="{{ url_for('templates.list_templates') }}" class="btn btn-outline-primary">
+                        <a href="{{ url_for('templates.list_templates') }}" class="btn btn-outline-primary rounded-0">
                             <i class="fas fa-file-alt me-2"></i> My Templates
                         </a>
                     </div>
@@ -35,7 +35,7 @@
                 <h4 class="mb-0">
                     <i class="fas fa-cloud-upload-alt text-primary me-2"></i> Upload Weekly Report
                 </h4>
-                <a href="{{ url_for('templates.list_templates') }}" class="btn btn-sm btn-outline-info">
+                <a href="{{ url_for('templates.list_templates') }}" class="btn btn-sm btn-outline-info rounded-0">
                     <i class="fas fa-file-alt me-1"></i> Use Template
                 </a>
             </div>
@@ -56,7 +56,7 @@
                                 <i class="fas fa-info-circle me-1"></i> Need a template? <a href="{{ url_for('templates.list_templates') }}" class="text-info">Click here</a> to use or create custom templates
                             </p>
                         </div>
-                        <div id="upload-error" class="alert alert-danger mt-3" style="display: none;"></div>
+                        <div id="upload-error" class="alert alert-danger mt-3 rounded-0" style="display: none;"></div>
                         
                         <!-- Weekend Date Selection -->
                         <div class="mt-4 pt-3 border-top border-secondary">
@@ -69,7 +69,7 @@
                             </div>
                             <div id="weekendDateSelection" class="mt-3" style="display: none;">
                                 <label for="weekendDate" class="form-label">Select the weekend date this report is for:</label>
-                                <select class="form-select bg-dark text-light border-secondary" id="weekendDate" name="weekend_date">
+                                <select class="form-select bg-dark text-light border-secondary rounded-0" id="weekendDate" name="weekend_date">
                                     {% for date in weekend_dates %}
                                         <option value="{{ date.value }}">
                                             Week ending {{ date.display }}
@@ -88,7 +88,7 @@
                         <div class="form-text">
                             <i class="fas fa-info-circle me-1"></i> Supported formats: PDF, DOC, DOCX, TXT, RTF
                         </div>
-                        <button id="upload-btn" type="submit" class="btn btn-primary" data-bs-toggle="tooltip" title="Submit your weekly report">
+                        <button id="upload-btn" type="submit" class="btn btn-primary rounded-0" data-bs-toggle="tooltip" title="Submit your weekly report">
                             <i class="fas fa-upload me-1"></i> Upload Report
                         </button>
                     </div>
@@ -187,7 +187,7 @@
                     </div>
                 </div>
                 
-                <div class="alert alert-info d-flex align-items-center mb-0 animated" role="alert">
+                <div class="alert alert-info d-flex align-items-center mb-0 animated rounded-0" role="alert">
                     <i class="fas fa-bell me-2"></i>
                     <div>
                         Email reminders will be sent every Monday morning. Make sure to submit your report on time.
@@ -219,7 +219,7 @@
                             <small class="text-muted">Official Excel format (download)</small>
                         </div>
                         <div class="ms-auto">
-                            <span class="badge bg-success">
+                            <span class="badge bg-success rounded-0">
                                 <i class="fas fa-download"></i>
                             </span>
                         </div>
@@ -235,7 +235,7 @@
                             <small class="text-muted">Edit online and save as PDF</small>
                         </div>
                         <div class="ms-auto">
-                            <span class="badge bg-primary">
+                            <span class="badge bg-primary rounded-0">
                                 <i class="fas fa-external-link-alt"></i>
                             </span>
                         </div>
@@ -251,7 +251,7 @@
                             <small class="text-muted">Simple text format (download)</small>
                         </div>
                         <div class="ms-auto">
-                            <span class="badge bg-info">
+                            <span class="badge bg-info rounded-0">
                                 <i class="fas fa-download"></i>
                             </span>
                         </div>
@@ -281,7 +281,7 @@
                 <h4 class="mb-0">
                     <i class="fas fa-history text-primary me-2"></i> Recent Submissions
                 </h4>
-                <span class="badge bg-primary counter-value">{{ submissions|length }}</span>
+                <span class="badge bg-primary counter-value rounded-0">{{ submissions|length }}</span>
             </div>
             <div class="card-body p-0">
                 {% if submissions %}
