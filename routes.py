@@ -362,7 +362,10 @@ def dashboard():
                          submissions=submissions_data, 
                          now=now, 
                          next_monday=next_monday,
-                         calendar=calendar_data)
+                         calendar=calendar_data,
+                         timedelta=timedelta,
+                         datetime=datetime,
+                         date=date)
 
 @bp.route('/logout')
 def logout():

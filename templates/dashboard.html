@@ -2,9 +2,6 @@
 
 {% block title %}Dashboard - Weekly Status Report Portal{% endblock %}
 
-{# Import datetime for timedelta #}
-{% from datetime import timedelta %}
-
 {% block content %}
 <div class="row">
     <div class="col-md-12 mb-4">
@@ -58,8 +55,9 @@
                             <div id="weekendDateSelection" class="mt-3" style="display: none;">
                                 <label for="weekendDate" class="form-label">Select the weekend date this report is for:</label>
                                 <select class="form-select bg-dark text-light border-secondary" id="weekendDate" name="weekend_date">
+                                    {% set today = now.date() %}
                                     {% for i in range(8) %}
-                                        {% set past_monday = (now.date() - timedelta(days=7*(i+1) + now.weekday())) %}
+                                        {% set past_monday = (today - timedelta(days=7*(i+1) + today.weekday())) %}
                                         {% set weekend_date = past_monday + timedelta(days=6) %}
                                         <option value="{{ weekend_date.strftime('%Y-%m-%d') }}">
                                             Week ending {{ weekend_date.strftime('%b %d, %Y') }}
