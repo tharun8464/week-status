@@ -1,0 +1,280 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}Admin Profile - SBS Corp Admin{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h1 class="mb-0">
+            <i class="fas fa-user-shield text-primary me-2"></i> Admin Profile
+        </h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-4 mb-4 mb-lg-0">
+        <div class="card bg-dark border-0 shadow-sm">
+            <div class="card-header bg-dark border-bottom border-secondary">
+                <h4 class="mb-0">Profile Information</h4>
+            </div>
+            <div class="card-body text-center">
+                <div class="profile-image mx-auto mb-4">
+                    <div class="avatar-circle bg-primary text-white">
+                        {{ current_user.name[0] }}
+                    </div>
+                </div>
+                <h3>{{ current_user.name }}</h3>
+                <p class="text-muted mb-3">
+                    <i class="fas fa-envelope me-1"></i> {{ current_user.email }}
+                </p>
+                <div class="badge bg-primary mb-4">Administrator</div>
+                
+                <div class="d-grid">
+                    <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+                        <i class="fas fa-edit me-1"></i> Edit Profile
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-8">
+        <div class="card bg-dark border-0 shadow-sm">
+            <div class="card-header bg-dark border-bottom border-secondary">
+                <h4 class="mb-0">Security Settings</h4>
+            </div>
+            <div class="card-body">
+                <div class="mb-4">
+                    <h5>
+                        <i class="fas fa-lock text-primary me-2"></i> Change Password
+                    </h5>
+                    <p class="text-muted">Update your password regularly to ensure account security.</p>
+                    
+                    <form method="POST" id="password-form">
+                        <div class="mb-3">
+                            <label for="current_password" class="form-label">Current Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-dark text-light border-secondary">
+                                    <i class="fas fa-lock"></i>
+                                </span>
+                                <input type="password" class="form-control bg-dark text-light border-secondary password-input" id="current_password" name="current_password" required>
+                                <button class="btn btn-outline-secondary toggle-password" type="button">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="new_password" class="form-label">New Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-dark text-light border-secondary">
+                                    <i class="fas fa-key"></i>
+                                </span>
+                                <input type="password" class="form-control bg-dark text-light border-secondary password-input" id="new_password" name="new_password" required>
+                                <button class="btn btn-outline-secondary toggle-password" type="button">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                            <div class="password-strength-meter mt-2">
+                                <div class="progress bg-dark">
+                                    <div class="progress-bar" role="progressbar" style="width: 0%"></div>
+                                </div>
+                                <small class="strength-text text-muted">Password strength</small>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="confirm_password" class="form-label">Confirm New Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-dark text-light border-secondary">
+                                    <i class="fas fa-check-double"></i>
+                                </span>
+                                <input type="password" class="form-control bg-dark text-light border-secondary password-input" id="confirm_password" name="confirm_password" required>
+                                <button class="btn btn-outline-secondary toggle-password" type="button">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i> Update Password
+                        </button>
+                    </form>
+                </div>
+                
+                <hr class="border-secondary my-4">
+                
+                <div>
+                    <h5>
+                        <i class="fas fa-shield-alt text-primary me-2"></i> Account Protection
+                    </h5>
+                    <p class="text-muted">Additional security measures for your account.</p>
+                    
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="notificationSwitch" checked disabled>
+                        <label class="form-check-label" for="notificationSwitch">
+                            Email notifications for account activity
+                        </label>
+                    </div>
+                    
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="mfaSwitch" disabled>
+                        <label class="form-check-label" for="mfaSwitch">
+                            Two-factor authentication 
+                            <span class="badge bg-secondary">Coming Soon</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Profile Modal -->
+<div class="modal fade" id="editProfileModal" tabindex="-1" aria-labelledby="editProfileModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark border border-secondary">
+            <div class="modal-header border-bottom border-secondary">
+                <h5 class="modal-title" id="editProfileModalLabel">
+                    <i class="fas fa-edit text-primary me-2"></i> Edit Profile
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" id="profile-form">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Name</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-dark text-light border-secondary">
+                                <i class="fas fa-user"></i>
+                            </span>
+                            <input type="text" class="form-control bg-dark text-light border-secondary" id="name" name="name" value="{{ current_user.name }}" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email Address</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-dark text-light border-secondary">
+                                <i class="fas fa-envelope"></i>
+                            </span>
+                            <input type="email" class="form-control bg-dark text-light border-secondary" id="email" value="{{ current_user.email }}" disabled>
+                        </div>
+                        <div class="form-text">Email cannot be changed for admin account.</div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-top border-secondary">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" form="profile-form" class="btn btn-primary">
+                    <i class="fas fa-save me-1"></i> Save Changes
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Toggle password visibility
+    const toggleButtons = document.querySelectorAll('.toggle-password');
+    toggleButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const input = this.previousElementSibling;
+            const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+            input.setAttribute('type', type);
+            this.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
+        });
+    });
+    
+    // Password strength meter
+    const passwordInput = document.getElementById('new_password');
+    const progressBar = document.querySelector('.password-strength-meter .progress-bar');
+    const strengthText = document.querySelector('.strength-text');
+    
+    passwordInput.addEventListener('input', function() {
+        const value = this.value;
+        let strength = 0;
+        
+        if (value.length >= 8) strength += 25;
+        if (value.match(/[A-Z]/)) strength += 25;
+        if (value.match(/[0-9]/)) strength += 25;
+        if (value.match(/[^A-Za-z0-9]/)) strength += 25;
+        
+        progressBar.style.width = strength + '%';
+        
+        if (strength <= 25) {
+            progressBar.className = 'progress-bar bg-danger';
+            strengthText.textContent = 'Weak password';
+        } else if (strength <= 50) {
+            progressBar.className = 'progress-bar bg-warning';
+            strengthText.textContent = 'Fair password';
+        } else if (strength <= 75) {
+            progressBar.className = 'progress-bar bg-info';
+            strengthText.textContent = 'Good password';
+        } else {
+            progressBar.className = 'progress-bar bg-success';
+            strengthText.textContent = 'Strong password';
+        }
+    });
+    
+    // Check if passwords match
+    const confirmInput = document.getElementById('confirm_password');
+    confirmInput.addEventListener('input', function() {
+        if (this.value !== passwordInput.value) {
+            this.setCustomValidity('Passwords do not match');
+        } else {
+            this.setCustomValidity('');
+        }
+    });
+    
+    // Prevent submit if passwords don't match
+    const passwordForm = document.getElementById('password-form');
+    passwordForm.addEventListener('submit', function(e) {
+        if (passwordInput.value !== confirmInput.value) {
+            e.preventDefault();
+            alert('Passwords do not match');
+        }
+    });
+    
+    // Animate avatar
+    const avatar = document.querySelector('.avatar-circle');
+    avatar.style.transform = 'scale(0.8)';
+    avatar.style.opacity = '0';
+    avatar.style.transition = 'transform 0.5s ease, opacity 0.5s ease';
+    
+    setTimeout(() => {
+        avatar.style.transform = 'scale(1)';
+        avatar.style.opacity = '1';
+    }, 200);
+});
+</script>
+{% endblock %}
+
+{% block head %}
+<style>
+.avatar-circle {
+    width: 120px;
+    height: 120px;
+    background-color: var(--bs-primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+    font-weight: bold;
+    margin: 0 auto;
+}
+
+.profile-image {
+    position: relative;
+    width: 130px;
+}
+
+.password-strength-meter {
+    font-size: 0.75rem;
+}
+</style>
+{% endblock %}

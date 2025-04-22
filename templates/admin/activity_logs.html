@@ -1,0 +1,108 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}Activity Logs - SBS Corp Admin{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h1 class="mb-0">
+            <i class="fas fa-history text-primary me-2"></i> Activity Logs
+        </h1>
+    </div>
+</div>
+
+<div class="card bg-dark border-0 shadow-sm">
+    <div class="card-header bg-dark border-bottom border-secondary">
+        <div class="d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">Recent Activity</h4>
+            <div class="input-group input-group-sm" style="width: 250px;">
+                <input type="text" id="activitySearch" class="form-control bg-dark text-light border-secondary" placeholder="Search activities...">
+                <span class="input-group-text bg-dark text-light border-secondary">
+                    <i class="fas fa-search"></i>
+                </span>
+            </div>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-dark table-hover align-middle mb-0" id="activityTable">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Action</th>
+                        <th>Details</th>
+                        <th>IP Address</th>
+                        <th>Timestamp</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if logs %}
+                        {% for log in logs %}
+                        <tr class="activity-row" data-user="{{ log.name|lower }}" data-action="{{ log.action|lower }}">
+                            <td>{{ log.name }}</td>
+                            <td>{{ log.action }}</td>
+                            <td class="text-truncate" style="max-width: 350px;">
+                                {{ log.details if log.details else 'N/A' }}
+                            </td>
+                            <td>{{ log.ip_address }}</td>
+                            <td>{{ log.timestamp.strftime('%b %d, %Y %H:%M:%S') }}</td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center py-4">
+                                <i class="fas fa-history fa-3x text-muted mb-3"></i>
+                                <h5>No activity logs found</h5>
+                                <p class="text-muted">Activity logs will appear here</p>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="card-footer bg-dark border-top border-secondary text-center">
+        <small class="text-muted">Activity logs are retained for 100 days</small>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Activity search functionality
+    const searchInput = document.getElementById('activitySearch');
+    const activityRows = document.querySelectorAll('.activity-row');
+    
+    searchInput.addEventListener('keyup', function() {
+        const searchTerm = this.value.toLowerCase();
+        
+        activityRows.forEach(row => {
+            const user = row.dataset.user;
+            const action = row.dataset.action;
+            const details = row.cells[2].textContent.toLowerCase();
+            
+            if (user.includes(searchTerm) || action.includes(searchTerm) || details.includes(searchTerm)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    });
+    
+    // Add animations to the table rows
+    activityRows.forEach((row, index) => {
+        setTimeout(() => {
+            row.style.opacity = '0';
+            row.style.transform = 'translateY(20px)';
+            row.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+            
+            setTimeout(() => {
+                row.style.opacity = '1';
+                row.style.transform = 'translateY(0)';
+            }, 50);
+        }, 50 * index);
+    });
+});
+</script>
+{% endblock %}

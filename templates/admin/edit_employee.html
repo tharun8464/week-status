@@ -1,0 +1,166 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}Edit Employee - SBS Corp Admin{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="d-flex align-items-center">
+            <a href="{{ url_for('admin.employees') }}" class="btn btn-outline-secondary me-3">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <h1 class="mb-0">
+                <i class="fas fa-user-edit text-primary me-2"></i> Edit Employee
+            </h1>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8 col-md-10 mx-auto">
+        <div class="card bg-dark border-0 shadow-sm">
+            <div class="card-header bg-dark border-bottom border-secondary">
+                <h4 class="mb-0">{{ employee.name }}'s Information</h4>
+            </div>
+            <div class="card-body">
+                <form id="edit-employee-form" method="POST" action="{{ url_for('admin.edit_employee', id=employee.id) }}">
+                    <div class="mb-3 animated fadeInDown" style="animation-delay: 0.1s;">
+                        <label for="name" class="form-label">Full Name <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-dark text-light border-secondary">
+                                <i class="fas fa-user"></i>
+                            </span>
+                            <input type="text" class="form-control bg-dark text-light border-secondary" id="name" name="name" value="{{ employee.name }}" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3 animated fadeInDown" style="animation-delay: 0.2s;">
+                        <label for="email" class="form-label">Email Address <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-dark text-light border-secondary">
+                                <i class="fas fa-envelope"></i>
+                            </span>
+                            <input type="email" class="form-control bg-dark text-light border-secondary" id="email" name="email" value="{{ employee.email }}" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3 form-check form-switch animated fadeInDown" style="animation-delay: 0.3s;">
+                        <input class="form-check-input" type="checkbox" id="active" name="active" {% if employee.active %}checked{% endif %}>
+                        <label class="form-check-label" for="active">Active Account</label>
+                        <div class="form-text">Inactive accounts cannot log in to the system.</div>
+                    </div>
+                    
+                    <div class="card bg-dark border-secondary mb-4 animated fadeInDown" style="animation-delay: 0.4s;">
+                        <div class="card-header bg-dark border-bottom border-secondary">
+                            <h5 class="mb-0">Account Statistics</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row text-center">
+                                <div class="col-md-4 mb-3 mb-md-0">
+                                    <div class="card bg-dark border-secondary h-100">
+                                        <div class="card-body">
+                                            <h2 class="counter-value">{{ employee.reports|length }}</h2>
+                                            <div class="text-muted">Reports Submitted</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3 mb-md-0">
+                                    <div class="card bg-dark border-secondary h-100">
+                                        <div class="card-body">
+                                            <h2 class="counter-value">{{ employee.created_at.strftime('%b %d, %Y') }}</h2>
+                                            <div class="text-muted">Account Created</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card bg-dark border-secondary h-100">
+                                        <div class="card-body">
+                                            <h2 class="counter-value">{{ employee.last_login.strftime('%b %d, %Y %H:%M') if employee.last_login else 'Never' }}</h2>
+                                            <div class="text-muted">Last Login</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mt-4 animated fadeInDown" style="animation-delay: 0.5s;">
+                        <div>
+                            <a href="{{ url_for('admin.employees') }}" class="btn btn-outline-secondary me-2">
+                                <i class="fas fa-times me-1"></i> Cancel
+                            </a>
+                            <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteEmployeeModal">
+                                <i class="fas fa-trash me-1"></i> Delete
+                            </button>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-submit">
+                            <i class="fas fa-save me-1"></i> Save Changes
+                            <span class="spinner-border spinner-border-sm ms-1 d-none" role="status" aria-hidden="true"></span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Employee Modal -->
+<div class="modal fade" id="deleteEmployeeModal" tabindex="-1" aria-labelledby="deleteEmployeeModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark border border-secondary">
+            <div class="modal-header border-bottom border-secondary">
+                <h5 class="modal-title" id="deleteEmployeeModalLabel">
+                    <i class="fas fa-exclamation-triangle text-danger me-2"></i> Delete Employee
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete <span class="fw-bold">{{ employee.name }}</span>?</p>
+                <p class="text-danger">This action cannot be undone. All associated reports will also be deleted.</p>
+            </div>
+            <div class="modal-footer border-top border-secondary">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="POST" action="{{ url_for('admin.delete_employee', id=employee.id) }}">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-1"></i> Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('edit-employee-form');
+    const submitBtn = document.querySelector('.btn-submit');
+    const spinner = submitBtn.querySelector('.spinner-border');
+    
+    form.addEventListener('submit', function(e) {
+        // Show loading state
+        submitBtn.disabled = true;
+        spinner.classList.remove('d-none');
+        submitBtn.querySelector('.fas').classList.add('d-none');
+    });
+    
+    // Add animations to form elements
+    document.querySelectorAll('.animated').forEach((el, index) => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+            el.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+            el.style.opacity = '1';
+            el.style.transform = 'translateY(0)';
+        }, 100 * index);
+    });
+    
+    // Animate counter values
+    document.querySelectorAll('.counter-value').forEach(counter => {
+        counter.classList.add('animated');
+    });
+});
+</script>
+{% endblock %}
