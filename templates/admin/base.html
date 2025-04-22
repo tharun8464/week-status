@@ -264,6 +264,12 @@
                         <span class="nav-text">Activity Logs</span>
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ 'active' if request.endpoint == 'admin.settings_notifications' }}" href="{{ url_for('admin.settings_notifications') }}">
+                        <span class="nav-icon"><i class="fas fa-bell"></i></span>
+                        <span class="nav-text">Notifications</span>
+                    </a>
+                </li>
                 <li class="nav-item mt-auto">
                     <a class="nav-link {{ 'active' if request.endpoint == 'admin.profile' }}" href="{{ url_for('admin.profile') }}">
                         <span class="nav-icon"><i class="fas fa-user-cog"></i></span>
