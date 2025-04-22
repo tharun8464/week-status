@@ -321,10 +321,12 @@ def dashboard():
                 
                 # Check if this is a late submission with a weekend date
                 submission_date = now
-                if 'is_late_submission' in request.form and request.form.get('weekend_date'):
+                # If the checkbox is checked (lateSubmissionCheck), the form will include weekend_date
+                if request.form.get('weekend_date'):
                     try:
                         weekend_date = datetime.strptime(request.form.get('weekend_date'), '%Y-%m-%d')
-                        submission_date = weekend_date
+                        # Set time component to match current time
+                        submission_date = datetime.combine(weekend_date.date(), now.time())
                         logging.debug(f"Late submission for weekend date: {weekend_date}")
                     except Exception as e:
                         logging.error(f"Error parsing weekend date: {str(e)}")
