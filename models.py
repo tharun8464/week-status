@@ -28,7 +28,6 @@ class Report(db.Model):
     employee_id = db.Column(db.String(36), db.ForeignKey('employees.id'), nullable=False)
     submission_date = db.Column(db.DateTime, default=datetime.now)
     filename = db.Column(db.String(255), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.now)
     
     def __repr__(self):
         return f'<Report {self.filename}>'
