@@ -1,0 +1,265 @@
+{% extends 'base.html' %}
+
+{% block title %}My Templates - Weekly Status Report Portal{% endblock %}
+
+{% block additional_head %}
+<style>
+    .template-card {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    
+    .template-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3) !important;
+    }
+    
+    .template-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+    }
+    
+    .template-actions {
+        position: absolute;
+        bottom: 15px;
+        right: 15px;
+    }
+    
+    .template-format-badge {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+    }
+    
+    .clipboard-btn {
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .clipboard-btn:hover {
+        transform: scale(1.1);
+    }
+    
+    .template-card .card-body {
+        padding-bottom: 50px; /* Space for actions */
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card bg-dark border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <h2 class="mb-0">
+                            <i class="fas fa-file-alt text-primary me-2"></i> Report Templates
+                        </h2>
+                        <p class="text-muted mb-0">Create, edit and share report templates with your team</p>
+                    </div>
+                    <a href="{{ url_for('templates.create_template') }}" class="btn btn-primary">
+                        <i class="fas fa-plus me-1"></i> Create New Template
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- My Templates Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <h4 class="mb-3">
+            <i class="fas fa-user-edit text-info me-2"></i> My Templates
+        </h4>
+        
+        {% if own_templates %}
+        <div class="row">
+            {% for template in own_templates %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card bg-dark border-0 shadow-sm template-card h-100">
+                    {% if template.is_shared %}
+                    <div class="template-badge">
+                        <span class="badge bg-success">
+                            <i class="fas fa-users me-1"></i> Shared
+                        </span>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="template-format-badge">
+                        <span class="badge bg-secondary">
+                            {% if template.format == 'html' %}
+                            <i class="fas fa-code me-1"></i> HTML
+                            {% elif template.format == 'text' %}
+                            <i class="fas fa-file-alt me-1"></i> Text
+                            {% elif template.format == 'markdown' %}
+                            <i class="fas fa-markdown me-1"></i> Markdown
+                            {% endif %}
+                        </span>
+                    </div>
+                    
+                    <div class="card-body">
+                        <h5 class="card-title mb-2">{{ template.name }}</h5>
+                        <p class="card-text text-muted small mb-2">
+                            <i class="far fa-calendar-alt me-1"></i> Created {{ template.created_at.strftime('%Y-%m-%d') }}
+                        </p>
+                        
+                        {% if template.description %}
+                        <p class="card-text text-muted">{{ template.description }}</p>
+                        {% endif %}
+                        
+                        <div class="template-actions">
+                            <div class="btn-group shadow-sm">
+                                <a href="{{ url_for('templates.view_template', template_id=template.id) }}" class="btn btn-sm btn-info" data-bs-toggle="tooltip" title="View Template">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{{ url_for('templates.use_template', template_id=template.id) }}" class="btn btn-sm btn-success" data-bs-toggle="tooltip" title="Use Template">
+                                    <i class="fas fa-file-export"></i>
+                                </a>
+                                <a href="{{ url_for('templates.edit_template', template_id=template.id) }}" class="btn btn-sm btn-primary" data-bs-toggle="tooltip" title="Edit Template">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ template.id }}" data-bs-tooltip="title" title="Delete Template">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Delete Confirmation Modal -->
+                <div class="modal fade" id="deleteModal{{ template.id }}" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content bg-dark text-light border-secondary">
+                            <div class="modal-header border-secondary">
+                                <h5 class="modal-title">
+                                    <i class="fas fa-exclamation-triangle text-warning me-2"></i> Confirm Deletion
+                                </h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p>Are you sure you want to delete the template <strong>"{{ template.name }}"</strong>?</p>
+                                <p class="text-danger">This action cannot be undone.</p>
+                            </div>
+                            <div class="modal-footer border-secondary">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <form action="{{ url_for('templates.delete_template', template_id=template.id) }}" method="POST">
+                                    <button type="submit" class="btn btn-danger">
+                                        <i class="fas fa-trash-alt me-1"></i> Delete
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="card bg-dark border-0 shadow-sm">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
+                <h5>No templates created yet</h5>
+                <p class="text-muted">Create your first template to streamline your weekly reports</p>
+                <a href="{{ url_for('templates.create_template') }}" class="btn btn-primary mt-2">
+                    <i class="fas fa-plus me-1"></i> Create New Template
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Shared Templates Section -->
+<div class="row">
+    <div class="col-12">
+        <h4 class="mb-3">
+            <i class="fas fa-share-alt text-success me-2"></i> Shared With Me
+        </h4>
+        
+        {% if shared_templates %}
+        <div class="row">
+            {% for template in shared_templates %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card bg-dark border-0 shadow-sm template-card h-100">
+                    <div class="template-badge">
+                        <span class="badge bg-info">
+                            <i class="fas fa-share-alt me-1"></i> Shared by {{ template.creator.name }}
+                        </span>
+                    </div>
+                    
+                    <div class="template-format-badge">
+                        <span class="badge bg-secondary">
+                            {% if template.format == 'html' %}
+                            <i class="fas fa-code me-1"></i> HTML
+                            {% elif template.format == 'text' %}
+                            <i class="fas fa-file-alt me-1"></i> Text
+                            {% elif template.format == 'markdown' %}
+                            <i class="fas fa-markdown me-1"></i> Markdown
+                            {% endif %}
+                        </span>
+                    </div>
+                    
+                    <div class="card-body">
+                        <h5 class="card-title mb-2">{{ template.name }}</h5>
+                        <p class="card-text text-muted small mb-2">
+                            <i class="far fa-calendar-alt me-1"></i> Created {{ template.created_at.strftime('%Y-%m-%d') }}
+                        </p>
+                        
+                        {% if template.description %}
+                        <p class="card-text text-muted">{{ template.description }}</p>
+                        {% endif %}
+                        
+                        <div class="template-actions">
+                            <div class="btn-group shadow-sm">
+                                <a href="{{ url_for('templates.view_template', template_id=template.id) }}" class="btn btn-sm btn-info" data-bs-toggle="tooltip" title="View Template">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{{ url_for('templates.use_template', template_id=template.id) }}" class="btn btn-sm btn-success" data-bs-toggle="tooltip" title="Use Template">
+                                    <i class="fas fa-file-export"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="card bg-dark border-0 shadow-sm">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-share-alt fa-3x text-muted mb-3"></i>
+                <h5>No templates shared with you</h5>
+                <p class="text-muted">Templates shared by your team members will appear here</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block additional_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize tooltips
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+    
+    // Add animation to the template cards
+    const templateCards = document.querySelectorAll('.template-card');
+    templateCards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+            card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, 100 * index);
+    });
+});
+</script>
+{% endblock %}

@@ -1,6 +1,6 @@
 import os
 import uuid
-from flask import Flask
+from flask import Flask, render_template
 from models import db
 from flask_login import LoginManager
 from werkzeug.security import generate_password_hash
@@ -67,6 +67,10 @@ def create_app():
     # Import and register admin routes
     from admin import bp as admin_bp
     app.register_blueprint(admin_bp)
+    
+    # Import and register template routes
+    from templates import templates_bp
+    app.register_blueprint(templates_bp)
     
     # Register error handlers
     @app.errorhandler(404)
