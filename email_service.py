@@ -135,6 +135,14 @@ def send_reminder_email(to_email, employee_name, due_date_str=None, include_temp
     
     subject = f"[REMINDER] Weekly Status Report for Week {current_week}, {current_year} Due"
     
+    # Prepare template note if attachment is included
+    template_note = ""
+    if include_template:
+        template_note = """
+        <p style="background-color: #f0f9ff; padding: 10px; border-left: 4px solid #4caf50; margin: 15px 0;">
+            <strong>📎 Template Attached:</strong> A Weekly Status Report Template Excel file is attached to this email for your convenience.
+        </p>"""
+    
     html_content = f"""
     <html>
     <body style="font-family: Arial, Helvetica, sans-serif; line-height: 1.6; color: #333;">
@@ -155,6 +163,8 @@ def send_reminder_email(to_email, employee_name, due_date_str=None, include_temp
                     <li>Format: Standard weekly status report</li>
                 </ul>
             </div>
+            
+            {template_note}
             
             <div style="text-align: center; margin: 25px 0;">
                 <a href="https://sbs-weekly-reports.replit.app" style="background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold; display: inline-block;">ACCESS PORTAL NOW</a>
