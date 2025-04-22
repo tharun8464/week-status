@@ -367,17 +367,58 @@ def dashboard():
             'display': past_sunday.strftime('%b %d, %Y') + ' (Sunday)'
         })
     
-    # Get calendar data for current month
-    calendar_data = get_calendar_data(employee_id, now.year, now.month)
+    # Handle calendar month/year navigation
+    selected_year = request.args.get('year', now.year, type=int)
+    selected_month = request.args.get('month', now.month, type=int)
+    
+    # Ensure selected date is valid
+    try:
+        date(selected_year, selected_month, 1)
+    except ValueError:
+        selected_year = now.year
+        selected_month = now.month
+    
+    # Get calendar data for selected month
+    calendar_data = get_calendar_data(employee_id, selected_year, selected_month)
+    
+    # Generate month navigation data
+    months = [{'number': i, 'name': calendar.month_name[i]} for i in range(1, 13)]
+    
+    # Generate year options (current year - 1 to current year + 5)
+    current_year = now.year
+    years = list(range(current_year - 1, current_year + 6))
+    
+    # Get next and previous months
+    if selected_month == 1:
+        prev_month = 12
+        prev_year = selected_year - 1
+    else:
+        prev_month = selected_month - 1
+        prev_year = selected_year
+        
+    if selected_month == 12:
+        next_month = 1
+        next_year = selected_year + 1
+    else:
+        next_month = selected_month + 1
+        next_year = selected_year
     
     return render_template('dashboard.html', 
                          name=session['employee_name'], 
                          submissions=submissions_data, 
                          now=now, 
-                         next_monday=next_monday,
+                         next_sunday=next_monday,  # Variable is still named next_monday but contains Sunday date
                          calendar=calendar_data,
                          weekend_dates=weekend_dates,
-                         date=date)
+                         date=date,
+                         selected_year=selected_year,
+                         selected_month=selected_month,
+                         months=months,
+                         years=years,
+                         prev_month=prev_month,
+                         prev_year=prev_year,
+                         next_month=next_month,
+                         next_year=next_year)
 
 @bp.route('/logout')
 def logout():
