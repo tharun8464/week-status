@@ -72,6 +72,9 @@ def dashboard():
     employee_count = User.query.filter_by(role='employee').count()
     report_count = Report.query.count()
     
+    # Calculate pending reviews (submitted but not approved/rejected)
+    pending_reviews = Report.query.filter_by(status='submitted').count()
+    
     # Calculate this week's reports
     today = datetime.now()
     start_of_week = today - timedelta(days=today.weekday())
@@ -92,6 +95,19 @@ def dashboard():
     # Recent activity logs
     recent_activities = ActivityLog.query.order_by(desc(ActivityLog.timestamp)).limit(5).all()
     
+    # Get employee submission status for this week
+    employees_with_status = []
+    for employee in all_employees:
+        last_report = Report.query.filter_by(employee_id=employee.id).order_by(desc(Report.submission_date)).first()
+        employee_data = {
+            'id': employee.id,
+            'name': employee.name,
+            'email': employee.email,
+            'has_submitted_this_week': employee.id in submitted_ids,
+            'last_report': last_report.submission_date if last_report else None
+        }
+        employees_with_status.append(employee_data)
+    
     log_admin_activity("Viewed admin dashboard")
     
     return render_template('admin/dashboard.html', 
@@ -99,8 +115,10 @@ def dashboard():
                           report_count=report_count,
                           reports_this_week=reports_this_week,
                           missing_reports=missing_reports,
+                          pending_reviews=pending_reviews,
                           recent_reports=recent_reports,
                           recent_activities=recent_activities,
+                          employees=employees_with_status,
                           now=datetime.now())
 
 # Employee management

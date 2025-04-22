@@ -16,6 +16,19 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 5000); // Auto dismiss after 5 seconds
     });
 
+    // Handle late submission weekend date selection
+    const lateSubmissionCheck = document.getElementById('lateSubmissionCheck');
+    const weekendDateSelection = document.getElementById('weekendDateSelection');
+    if (lateSubmissionCheck && weekendDateSelection) {
+        lateSubmissionCheck.addEventListener('change', function() {
+            if (this.checked) {
+                weekendDateSelection.style.display = 'block';
+            } else {
+                weekendDateSelection.style.display = 'none';
+            }
+        });
+    }
+    
     // Form validation for signup
     const signupForm = document.getElementById('signup-form');
     if (signupForm) {
