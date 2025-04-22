@@ -20,15 +20,16 @@ SENDER_NAME = os.environ.get('SENDER_NAME', 'SBS Corp Weekly Status Report Syste
 SENDER_EMAIL = os.environ.get('SENDER_EMAIL', 'statusreports@mysbscorp.com')
 
 
-def send_email(to_email, subject, html_content=None, text_content=None):
+def send_email(to_email, subject, html_content=None, text_content=None, attachments=None):
     """
     Send an email using the configured SMTP server.
     
     Args:
-        to_email (str): Recipient email address
+        to_email (str): Recipient email address or comma-separated list of addresses
         subject (str): Email subject
         html_content (str, optional): HTML content of the email
         text_content (str, optional): Plain text content of the email
+        attachments (list, optional): List of attachment file paths
         
     Returns:
         bool: True if the email was sent successfully, False otherwise
@@ -39,23 +40,49 @@ def send_email(to_email, subject, html_content=None, text_content=None):
         return False
     
     # Create the message
-    msg = MIMEMultipart('alternative')
+    msg = MIMEMultipart()
     msg['Subject'] = subject
     msg['From'] = f"{SENDER_NAME} <{SENDER_EMAIL}>"
     msg['To'] = to_email
     
+    # Create the alternative part for text/html content
+    alternative = MIMEMultipart('alternative')
+    msg.attach(alternative)
+    
     # Always provide a plain text version as a fallback
     if text_content:
-        msg.attach(MIMEText(text_content, 'plain'))
+        alternative.attach(MIMEText(text_content, 'plain'))
     elif html_content:
         # Generate a plain text version from the HTML content
         plain_text = html_content.replace('<br>', '\n').replace('<p>', '\n').replace('</p>', '\n')
         plain_text = ''.join(c for c in plain_text if ord(c) < 128)  # Remove non-ASCII characters
-        msg.attach(MIMEText(plain_text, 'plain'))
+        alternative.attach(MIMEText(plain_text, 'plain'))
     
     # Add HTML content if provided
     if html_content:
-        msg.attach(MIMEText(html_content, 'html'))
+        alternative.attach(MIMEText(html_content, 'html'))
+    
+    # Add attachments if provided
+    if attachments:
+        for attachment_path in attachments:
+            try:
+                with open(attachment_path, "rb") as attachment:
+                    part = MIMEBase('application', 'octet-stream')
+                    part.set_payload(attachment.read())
+                
+                encoders.encode_base64(part)
+                
+                # Get filename from path
+                filename = os.path.basename(attachment_path)
+                part.add_header(
+                    "Content-Disposition",
+                    f"attachment; filename= {filename}",
+                )
+                
+                msg.attach(part)
+                logger.info(f"Attachment added: {filename}")
+            except Exception as e:
+                logger.error(f"Failed to attach file {attachment_path}: {str(e)}")
     
     try:
         # Connect to the SMTP server
@@ -70,8 +97,11 @@ def send_email(to_email, subject, html_content=None, text_content=None):
         # Login to the SMTP server
         server.login(SMTP_USERNAME, SMTP_PASSWORD)
         
+        # Split recipients for multiple addresses
+        recipients = [email.strip() for email in to_email.split(',')]
+        
         # Send the email
-        server.sendmail(SENDER_EMAIL, to_email, msg.as_string())
+        server.sendmail(SENDER_EMAIL, recipients, msg.as_string())
         server.quit()
         
         logger.info(f"Email sent to {to_email}: {subject}")
@@ -81,14 +111,15 @@ def send_email(to_email, subject, html_content=None, text_content=None):
         return False
 
 
-def send_reminder_email(to_email, employee_name, due_date_str=None):
+def send_reminder_email(to_email, employee_name, due_date_str=None, include_template=True):
     """
     Send a reminder email to an employee who missed their weekly report submission.
     
     Args:
-        to_email (str): Employee email address
+        to_email (str): Employee email address or comma-separated list of addresses
         employee_name (str): Employee name
         due_date_str (str, optional): Due date string
+        include_template (bool, optional): Whether to include the report template as attachment
         
     Returns:
         bool: True if the email was sent successfully, False otherwise
@@ -140,7 +171,13 @@ def send_reminder_email(to_email, employee_name, due_date_str=None):
     </html>
     """
     
-    return send_email(to_email, subject, html_content)
+    # Add template attachment if requested
+    attachments = None
+    if include_template:
+        template_path = 'static/templates/Weekly_Status_Report_Template.xlsx'
+        attachments = [template_path]
+        
+    return send_email(to_email, subject, html_content, attachments=attachments)
 
 
 def send_report_approved_email(to_email, employee_name, report_date, feedback=None):

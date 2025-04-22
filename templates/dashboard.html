@@ -209,6 +209,22 @@
                 </p>
                 
                 <div class="list-group mb-0">
+                    <!-- Template 1: Excel Template -->
+                    <a href="{{ url_for('static', filename='templates/Weekly_Status_Report_Template.xlsx') }}" download="SBS_Weekly_Report_Template.xlsx" class="list-group-item list-group-item-action bg-dark border-secondary d-flex align-items-center">
+                        <div class="template-icon bg-success bg-opacity-25 text-success me-3">
+                            <i class="fas fa-file-excel"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0">Excel Template</h6>
+                            <small class="text-muted">Official Excel format (download)</small>
+                        </div>
+                        <div class="ms-auto">
+                            <span class="badge bg-success rounded-pill">
+                                <i class="fas fa-download"></i>
+                            </span>
+                        </div>
+                    </a>
+
                     <!-- Template 1: Interactive HTML Template -->
                     <a href="{{ url_for('static', filename='sample_report_template.html') }}" target="_blank" class="list-group-item list-group-item-action bg-dark border-secondary d-flex align-items-center">
                         <div class="template-icon bg-primary bg-opacity-25 text-primary me-3">
@@ -243,7 +259,7 @@
                     
                     <!-- Template Preview Button -->
                     <button type="button" class="list-group-item list-group-item-action bg-dark border-secondary d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#templatePreviewModal">
-                        <div class="template-icon bg-success bg-opacity-25 text-success me-3">
+                        <div class="template-icon bg-warning bg-opacity-25 text-warning me-3">
                             <i class="fas fa-eye"></i>
                         </div>
                         <div>
@@ -251,7 +267,7 @@
                             <small class="text-muted">See what should be included</small>
                         </div>
                         <div class="ms-auto">
-                            <span class="badge bg-success rounded-pill">
+                            <span class="badge bg-warning rounded-pill">
                                 <i class="fas fa-search"></i>
                             </span>
                         </div>

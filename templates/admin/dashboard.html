@@ -522,6 +522,22 @@
                                     </div>
                                     <div class="form-text text-muted">Subject line for the reminder email</div>
                                 </div>
+                                
+                                <div class="mb-3">
+                                    <label for="additionalEmails" class="form-label">Additional Email Recipients (Optional)</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-dark text-light border-secondary"><i class="fas fa-at"></i></span>
+                                        <input type="text" class="form-control bg-dark text-light border-secondary" id="additionalEmails" name="additional_emails" placeholder="email1@example.com, email2@example.com">
+                                    </div>
+                                    <div class="form-text text-muted">Comma-separated list of additional email addresses to include</div>
+                                </div>
+                                
+                                <div class="form-check mb-0">
+                                    <input class="form-check-input" type="checkbox" id="includeTemplate" name="include_template" checked>
+                                    <label class="form-check-label" for="includeTemplate">
+                                        Include Weekly Status Report Template as Attachment
+                                    </label>
+                                </div>
                             </div>
                         </div>
                     </div>

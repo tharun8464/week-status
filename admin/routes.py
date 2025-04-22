@@ -531,6 +531,8 @@ def send_reminders():
     # Get email parameters
     subject = request.form.get('subject', '[REMINDER] Weekly Status Report Due')
     additional_message = request.form.get('message', '')
+    include_template = request.form.get('include_template') == 'on'
+    additional_emails = request.form.get('additional_emails', '').strip()
     
     # Format additional message if provided
     formatted_additional_message = ""
@@ -542,6 +544,14 @@ def send_reminders():
             {message_with_breaks}
         </p>
         """
+    
+    # Process additional email recipients (if any)
+    additional_recipients = []
+    if additional_emails:
+        additional_recipients = [email.strip() for email in additional_emails.split(',') if email.strip()]
+    
+    # Record if we're sending to additional emails
+    additional_email_count = len(additional_recipients)
     
     # Send emails to target employees
     count = 0
@@ -567,7 +577,8 @@ def send_reminders():
             email_success = email_service.send_reminder_email(
                 to_email=employee.email,
                 employee_name=employee.name,
-                due_date_str=due_date_str
+                due_date_str=due_date_str,
+                include_template=include_template
             )
             
             # Also try Slack as an additional notification channel
@@ -599,15 +610,41 @@ def send_reminders():
         except Exception as e:
             logging.error(f"Error sending reminder to {employee.email}: {str(e)}")
     
+    # Send emails to additional recipients if specified
+    for email_address in additional_recipients:
+        try:
+            # Send reminder email to additional recipient
+            email_success = email_service.send_reminder_email(
+                to_email=email_address,
+                employee_name="Team Member",  # Generic name for external recipients
+                due_date_str=due_date_str,
+                include_template=include_template
+            )
+            
+            if email_success:
+                logging.info(f"Sent reminder to additional recipient: {email_address}")
+            else:
+                logging.warning(f"Failed to send reminder to additional recipient: {email_address}")
+                
+        except Exception as e:
+            logging.error(f"Error sending reminder to additional recipient {email_address}: {str(e)}")
+    
     # Log the action
-    if send_to_all:
-        action_details = f"Sent report reminders to all {count} employees (including those who already submitted)"
+    if additional_email_count > 0:
+        if send_to_all:
+            action_details = f"Sent report reminders to all {count} employees (including those who already submitted) and {additional_email_count} additional email recipients"
+        else:
+            action_details = f"Sent report reminders to {count} employees who haven't submitted yet and {additional_email_count} additional email recipients"
     else:
-        action_details = f"Sent report reminders to {count} employees who haven't submitted yet"
+        if send_to_all:
+            action_details = f"Sent report reminders to all {count} employees (including those who already submitted)"
+        else:
+            action_details = f"Sent report reminders to {count} employees who haven't submitted yet"
     
     log_admin_activity(action_details)
     
-    flash(f"Reminders sent to {count} employees", "success")
+    total_sent = count + additional_email_count
+    flash(f"Reminders sent to {total_sent} recipients", "success")
     return redirect(url_for('admin.dashboard'))
 
 # Activity logs
