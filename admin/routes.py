@@ -613,11 +613,19 @@ def send_reminders():
     # Send emails to additional recipients if specified
     for email_address in additional_recipients:
         try:
+            # Calculate due date for the email (next Sunday) if not already calculated
+            today = datetime.now()
+            days_until_sunday = (6 - today.weekday()) % 7
+            if days_until_sunday == 0:
+                days_until_sunday = 7
+            next_sunday = today + timedelta(days=days_until_sunday)
+            additional_due_date_str = next_sunday.strftime("%A, %B %d, %Y at 11:59 PM")
+            
             # Send reminder email to additional recipient
             email_success = email_service.send_reminder_email(
                 to_email=email_address,
                 employee_name="Team Member",  # Generic name for external recipients
-                due_date_str=due_date_str,
+                due_date_str=additional_due_date_str,
                 include_template=include_template
             )
             
